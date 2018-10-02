@@ -30,8 +30,6 @@ void loop(HDC *hDc)
 	SwapBuffers(*hDc);
 }
 
-
-
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
 	MSG msg = { 0 };
@@ -42,7 +40,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 
 	gC.createGlContext(&hWnd);
 
-	MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
+	//MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
+	//glViewport(0, 0, 640, 480);
 
 	while(1)
 	{

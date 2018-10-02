@@ -8,9 +8,13 @@
 #pragma warning(disable:4996)
 
 PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
-PFNGLGETSTRINGIPROC glGetStringi;
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+
+PFNGLGENBUFFERSPROC glGenBuffers;
+PFNGLBINDBUFFERPROC glBindBuffer;
+PFNGLBUFFERDATAPROC glBufferData;
+PFNGLGETSTRINGIPROC glGetStringi;
 
 void *loadFunction(const char *name)
 {
@@ -49,4 +53,12 @@ int getWglExtensions(HDC hDc)
 		return 0;
 
 	return 1;
+}
+
+void loadGlFunctions(void)
+{
+	glGenBuffers = (PFNGLGENBUFFERSPROC)loadFunction("glGenBuffers");
+	glBindBuffer = (PFNGLBINDBUFFERPROC)loadFunction("glBindBuffer");
+	glBufferData = (PFNGLBUFFERDATAPROC)loadFunction("glBufferData");
+	glGetStringi = (PFNGLGETSTRINGIPROC)loadFunction("glGetStringi");
 }

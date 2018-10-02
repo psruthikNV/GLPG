@@ -101,4 +101,5 @@ void glContext::createGlContext(HWND *hWnd)
 	}
 
 	createActualGlContext();
+	loadGlFunctions();
 }

@@ -13,9 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Shader Files">
+      <UniqueIdentifier>{3164aab4-be9c-4def-9d25-0c8542b74e46}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="triangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -26,5 +32,16 @@
     <ClInclude Include="loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vertex.vs">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
+    <None Include="fragment.fs">
+      <Filter>Source Files\Shader Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

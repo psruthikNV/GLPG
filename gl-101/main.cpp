@@ -1,19 +1,27 @@
-/*
- *Info about Window's windows.
- *Each window is associated with a window class.
- *One window class can have multiple windows. 
- *All these windows have to use the WindowProc that was used 
- *during class registration. Window classes are identified
- *by class names.
- *All events are passed to the Window Procedure.
-*/
-
 #include <iostream>
 #include <Windows.h>
 #include "context.h"
 
-#pragma comment (lib, "opengl32.lib")
-#pragma warning(disable:4996)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+HWND createNativeWindow(HINSTANCE *hInstance)
+{
+	WNDCLASS wc = { 0 };
+	HWND hWnd;
+	wc.lpfnWndProc = WndProc;
+	wc.hInstance = *hInstance;
+	wc.lpszClassName = "Class";
+	wc.style = CS_OWNDC;
+
+	if (!RegisterClass(&wc)) {
+		OutputDebugString("Failed to Register Window Class \n");
+	}
+
+	hWnd = CreateWindow(wc.lpszClassName, "Test", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+		0, 0, 1366, 768, 0, 0, *hInstance, 0);
+
+	return hWnd;
+}
 
 void loop(HDC *hDc)
 {
@@ -22,32 +30,19 @@ void loop(HDC *hDc)
 	SwapBuffers(*hDc);
 }
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
 	MSG msg = { 0 };
-	WNDCLASS wc = { 0 };
-	HWND hWnd;
-	wc.lpfnWndProc = WndProc;
-	wc.hInstance = hInstance;
-	//wc.hbrBackground = (HBRUSH)(COLOR_BACKGROUND);
-	wc.lpszClassName = "Class";
-	wc.style = CS_OWNDC;
-
 	glContext gC;
+	HWND hWnd;
 
-	if (!RegisterClass(&wc)) {
-		OutputDebugString("Failed to Register Window Class \n");
-		return -1;
-	}
+	hWnd = createNativeWindow(&hInstance);
 
-	hWnd = CreateWindow(wc.lpszClassName, "Test", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 1366, 768, 0, 0, hInstance, 0);
+	gC.createGlContext(&hWnd);
 
-	ShowWindow(hWnd, SW_SHOW);
-
-	gC.createContext(&hWnd);
+	MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
 
 	while(1)
 	{

@@ -13,16 +13,16 @@ public:
 	
 	glContext() : hGlrc(NULL), temp_hGlrc(NULL) {}
 
-	void createContext(HWND *);
+	void createGlContext(HWND *);
+
 private:
 	HGLRC temp_hGlrc;
+	void createDummyGlContext(void);
+	void createActualGlContext(void);
 };
 
-void glContext::createContext(HWND *hWnd)
+void glContext::createDummyGlContext()
 {
-	this->hWnd = hWnd;
-	hDc = GetDC(*this->hWnd);
-
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
 		1,
@@ -41,14 +41,20 @@ void glContext::createContext(HWND *hWnd)
 		0,
 		0,0,0
 	};
-	
+
 	pixelFormat = ChoosePixelFormat(this->hDc, &pfd);
 	SetPixelFormat(hDc, pixelFormat, &pfd);
 	temp_hGlrc = wglCreateContext(hDc);
 	wglMakeCurrent(hDc, temp_hGlrc);
-	int pf[10];
+
+}
+
+void glContext::createActualGlContext()
+{
+	int pixelFormatsIdx[10];
 	UINT pfn;
-	const int attribList[] =
+
+	const int pixelFormatAttribs[] =
 	{
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
@@ -59,24 +65,18 @@ void glContext::createContext(HWND *hWnd)
 		WGL_STENCIL_BITS_ARB, 8,
 		0,
 	};
-	int pfs;
 
-	if (!getWglExtensions(hDc))
-		hGlrc = temp_hGlrc;
-	else {
-
-		pfs = wglChoosePixelFormatARB(hDc, attribList, NULL, 5, pf, &pfn);
-
-		if (pfs == FALSE)
-			OutputDebugString("Failed to set pixel format");
-
-		if (SetPixelFormat(hDc, pf[0], NULL) == FALSE)
-			OutputDebugString("FAIL");
+	if (wglChoosePixelFormatARB(hDc, pixelFormatAttribs, NULL, 5, pixelFormatsIdx, &pfn) == FALSE) {
+		OutputDebugString("Failed to set pixel format");
 	}
-	
-	const int contextAttrib[] = {
+
+	if (SetPixelFormat(hDc, pixelFormatsIdx[0], NULL) == FALSE)
+		OutputDebugString("FAIL");
+
+	const int contextAttrib[] =
+	{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 5,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
 		WGL_CONTEXT_FLAGS_ARB, 0,
 		0
 	};
@@ -85,4 +85,20 @@ void glContext::createContext(HWND *hWnd)
 	wglMakeCurrent(NULL, NULL);
 	wglDeleteContext(temp_hGlrc);
 	wglMakeCurrent(hDc, hGlrc);
+
+}
+
+void glContext::createGlContext(HWND *hWnd)
+{
+	this->hWnd = hWnd;
+	hDc = GetDC(*this->hWnd);
+
+	createDummyGlContext();
+
+	if (!getWglExtensions(hDc)) {
+		hGlrc = temp_hGlrc;
+		return;
+	}
+
+	createActualGlContext();
 }

@@ -1,6 +1,8 @@
 #include <iostream>
 #include <Windows.h>
 #include "context.h"
+#include "shader.h"
+#include "triangle.hpp"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -18,7 +20,7 @@ HWND createNativeWindow(HINSTANCE *hInstance)
 	}
 
 	hWnd = CreateWindow(wc.lpszClassName, "Test", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		0, 0, 1366, 768, 0, 0, *hInstance, 0);
+		0, 0, 800, 600, 0, 0, *hInstance, 0);
 
 	return hWnd;
 }
@@ -35,19 +37,22 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 	MSG msg = { 0 };
 	glContext gC;
 	HWND hWnd;
+	shader s;
 
 	hWnd = createNativeWindow(&hInstance);
 
 	gC.createGlContext(&hWnd);
 
 	//MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
-	//glViewport(0, 0, 640, 480);
+	//glViewport(0, 0, 1366, 768);
+	createTriangle();
 
 	while(1)
 	{
 		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			DispatchMessage(&msg);
-		loop(&gC.hDc);
+		//loop(&gC.hDc);
+		triangleLoop(&gC.hDc);
 	}
 
 	return 0;

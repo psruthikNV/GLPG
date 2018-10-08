@@ -76,7 +76,7 @@ void glContext::createActualGlContext()
 	const int contextAttrib[] =
 	{
 		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 5, // Use 4.5 instead of 4.6 due to outdated Intel gen9 drivers
 		WGL_CONTEXT_FLAGS_ARB, 0,
 		0
 	};

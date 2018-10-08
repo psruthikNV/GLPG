@@ -12,7 +12,8 @@ private:
 	int fs;
 	int pId;
 
-	void compileIntShader(const char *, int);
+	void compileIntShader(const char *);
+	void compileIntFShader(const char *);
 
 public:
 
@@ -29,32 +30,54 @@ void shader::compileShader(const char *source, int flag)
 	if (!flag) {
 		OutputDebugString("\n Vertex Shader");
 		vs = glCreateShader(GL_VERTEX_SHADER);
-		compileIntShader(source, vs);
+		compileIntShader(source);
 	}
 
 	else {
 		OutputDebugString("\n Fragment Shader");
 		fs = glCreateShader(GL_FRAGMENT_SHADER);
-		compileIntShader(source, fs);
+		compileIntFShader(source);
 	}
 }
 
-void shader::compileIntShader(const char *source, int obj)
+void shader::compileIntShader(const char *source)
 {
 	int success = 0;
 
-	glShaderSource(obj, 1, &source, nullptr);
-	glCompileShader(obj);
+	glShaderSource(vs, 1, &source, nullptr);
+	glCompileShader(vs);
 
-	glGetShaderiv(obj, GL_COMPILE_STATUS, &success);
+	glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
 
-	if (!success) {
+	if (success == GL_FALSE) {
 		OutputDebugString("FAILED IN COMPILING SHADER");
-		int maxLength = 0;
-		glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &maxLength);
+		int	 maxLength = 0;
+		glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &maxLength);
 		std::vector<char> errorLog(maxLength);
-		glGetShaderInfoLog(obj, maxLength, &maxLength, &errorLog[0]);
-		glDeleteShader(obj);
+		glGetShaderInfoLog(vs, maxLength, &maxLength, &errorLog[0]);
+		glDeleteShader(vs);
+
+		std::string s(errorLog.begin(), errorLog.end());
+		OutputDebugString(s.c_str());
+	}
+}
+
+void shader::compileIntFShader(const char *source)
+{
+	int success = 0;
+
+	glShaderSource(fs, 1, &source, nullptr);
+	glCompileShader(fs);
+
+	glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
+
+	if (success == GL_FALSE) {
+		OutputDebugString("FAILED IN COMPILING SHADER");
+		int	 maxLength = 0;
+		glGetShaderiv(fs, GL_INFO_LOG_LENGTH, &maxLength);
+		std::vector<char> errorLog(maxLength);
+		glGetShaderInfoLog(fs, maxLength, &maxLength, &errorLog[0]);
+		glDeleteShader(fs);
 
 		std::string s(errorLog.begin(), errorLog.end());
 		OutputDebugString(s.c_str());
@@ -73,7 +96,7 @@ void shader::linkShader()
 
 	glGetProgramiv(pId, GL_LINK_STATUS, &isLinked);
 
-	if (!isLinked) {
+	if (isLinked == GL_FALSE) {
 		OutputDebugString("FAILED IN LINKING SHADER");
 		int maxLength = 0;
 		glGetProgramiv(pId, GL_INFO_LOG_LENGTH, &maxLength);

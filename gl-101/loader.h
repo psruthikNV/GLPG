@@ -31,6 +31,8 @@ PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding;
+PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
 
 
 void *loadFunction(const char *name)
@@ -94,4 +96,6 @@ void loadGlFunctions(void)
 	glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)loadFunction("glBindVertexArray");
 	glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)loadFunction("glVertexAttribPointer");
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)loadFunction("glEnableVertexAttribArray");
+	glVertexArrayAttribBinding = (PFNGLVERTEXARRAYATTRIBBINDINGPROC)loadFunction("glVertexArrayAttribBinding");
+	glVertexArrayVertexBuffer = (PFNGLVERTEXARRAYVERTEXBUFFERPROC)loadFunction("glVertexArrayVertexBuffer");
 }

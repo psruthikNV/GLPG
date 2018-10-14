@@ -10,13 +10,13 @@ class shader
 private:
 	int vs;
 	int fs;
-	int pId;
+	
 
 	void compileIntShader(const char *);
 	void compileIntFShader(const char *);
 
 public:
-
+	int pId;
 	void compileShader(const char *, int);
 	void linkShader();
 	void use();

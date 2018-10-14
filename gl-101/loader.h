@@ -33,6 +33,8 @@ PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
 PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding;
 PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
+PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+PFNGLUNIFORM4FPROC glUniform4f;
 
 
 void *loadFunction(const char *name)
@@ -98,4 +100,6 @@ void loadGlFunctions(void)
 	glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)loadFunction("glEnableVertexAttribArray");
 	glVertexArrayAttribBinding = (PFNGLVERTEXARRAYATTRIBBINDINGPROC)loadFunction("glVertexArrayAttribBinding");
 	glVertexArrayVertexBuffer = (PFNGLVERTEXARRAYVERTEXBUFFERPROC)loadFunction("glVertexArrayVertexBuffer");
+	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)loadFunction("glGetUniformLocation");
+	glUniform4f = (PFNGLUNIFORM4FPROC)loadFunction("glUniform4f");
 }

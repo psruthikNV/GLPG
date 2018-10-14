@@ -121,6 +121,7 @@
     <ClInclude Include="context.h" />
     <ClInclude Include="loader.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="timer.hpp" />
     <ClInclude Include="triangle.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

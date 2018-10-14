@@ -3,6 +3,7 @@
 #include "context.h"
 #include "shader.h"
 #include "triangle.hpp"
+#include "timer.hpp"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 

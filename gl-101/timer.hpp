@@ -3,28 +3,24 @@
 
 class timer {
 public:
-	void initTime();
+	timer() {
+		initTime();
+	}
 	UINT64 getTime();
-	UINT64 getTimeElapsed();
 private:
+	void initTime();
 	UINT64 startTime;
 };
 
 void timer::initTime()
 {
 	QueryPerformanceCounter((LARGE_INTEGER*)&startTime);
+	printf("\n Timer : %lld", startTime);
 }
 
 inline UINT64 timer::getTime()
 {
 	UINT64 value;
-	value = QueryPerformanceCounter((LARGE_INTEGER*)&value);
-	return value;
-}
-
-inline UINT64 timer::getTimeElapsed()
-{
-	UINT64 value;
-	value = QueryPerformanceCounter((LARGE_INTEGER*)&value);
-	return  value - startTime;
+	QueryPerformanceCounter((LARGE_INTEGER*)&value);
+	return (value - startTime) * 0.001;
 }

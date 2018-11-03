@@ -35,6 +35,11 @@ void loop(HDC *hDc)
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nCmdShow)
 {
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+
 	MSG msg = { 0 };
 	glContext gC;
 	HWND hWnd;

@@ -48,8 +48,7 @@ GLuint VAO;
 GLuint VBO;
 
 void createTriangle()
-{	
-	t.initTime();
+{
 	s.compileShader(vertexSource, 0);
 	s.compileShader(fragmentSource, 1);
 	s.linkShader();
@@ -58,10 +57,13 @@ void createTriangle()
 	glViewport(0, 0, 800, 600);
 
 	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-	glBindVertexArray(VAO);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(GL_FLOAT)));
 	glEnableVertexAttribArray(0);
@@ -69,15 +71,24 @@ void createTriangle()
 	
 }
 
+UINT64 oldTimer = 0;
+
 void triangleLoop(HDC *hDc)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	s.use();
 	UINT64 timeValue = t.getTime();
+	//printf("\n Timeer : %lld", timeValue);
 	double val = sin(timeValue) / 2.0f + 0.5f;
 	int vertexColorLocation = glGetUniformLocation(s.pId, "aColorOut");
-	glUniform4f(vertexColorLocation,val, val, 0.0f, 1.0f);
+	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
 	//glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	SwapBuffers(*hDc);
+	UINT64 newTimer = t.getTime();
+	UINT64 diff = newTimer - oldTimer;
+	//UINT64 fps = 1000 / diff;
+	printf("Diff : %lld \n", diff);
+	oldTimer = newTimer;
+	Sleep(16.6);
 }

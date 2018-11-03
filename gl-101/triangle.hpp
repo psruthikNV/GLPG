@@ -77,18 +77,19 @@ void triangleLoop(HDC *hDc)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	s.use();
-	UINT64 timeValue = t.getTime();
+	double timeValue = t.getTime()*0.001*0.001;
 	//printf("\n Timeer : %lld", timeValue);
-	double val = sin(timeValue) / 2.0f + 0.5f;
+	float val = (sin(timeValue) + 1.0f) / 2.0f; printf("val: %f \n", val);
 	int vertexColorLocation = glGetUniformLocation(s.pId, "aColorOut");
 	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
 	//glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	Sleep(16);
 	SwapBuffers(*hDc);
 	UINT64 newTimer = t.getTime();
 	UINT64 diff = newTimer - oldTimer;
 	//UINT64 fps = 1000 / diff;
-	printf("Diff : %lld \n", diff);
+	//printf("Diff : %lld \n", diff);
 	oldTimer = newTimer;
-	Sleep(16.6);
+	
 }

@@ -22,5 +22,5 @@ inline UINT64 timer::getTime()
 {
 	UINT64 value;
 	QueryPerformanceCounter((LARGE_INTEGER*)&value);
-	return (value - startTime) * 0.001;
+	return (value - startTime);
 }

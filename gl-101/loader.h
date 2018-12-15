@@ -35,6 +35,7 @@ PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding;
 PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM4FPROC glUniform4f;
+PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
 
 void *loadFunction(const char *name)
@@ -102,4 +103,5 @@ void loadGlFunctions(void)
 	glVertexArrayVertexBuffer = (PFNGLVERTEXARRAYVERTEXBUFFERPROC)loadFunction("glVertexArrayVertexBuffer");
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)loadFunction("glGetUniformLocation");
 	glUniform4f = (PFNGLUNIFORM4FPROC)loadFunction("glUniform4f");
+	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)loadFunction("glGenerateMipmap");
 }

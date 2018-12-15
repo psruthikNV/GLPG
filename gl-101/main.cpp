@@ -49,8 +49,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR pCmdLine, int nC
 
 	gC.createGlContext(&hWnd);
 
-	//MessageBoxA(0, (char*)glGetString(GL_VERSION), "OPENGL VERSION", 0);
-	//glViewport(0, 0, 1366, 768);
 	createTriangle();
 
 	while(1)

@@ -261,3 +261,5 @@ __pycache__/
 *.pyc
 /gl-101/stb_image.h
 /gl-101/test_texture.PNG
+/gl-101/container.jpg
+/gl-101/texture.jpg

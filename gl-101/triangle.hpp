@@ -15,15 +15,25 @@ float vertices[] = {
 	0.5, -0.5, 0.0
 };
 
-float vertexData[] = {
-	-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-	-0.5, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
-	0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
-	-0.5, 0.5, 0.0, 0.25, 0.52, 0.0, 0.0, 1.0, 
-	0.5, -0.5, 0.0, 0.72, 0.1, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0
+unsigned int indices[] = {
+	0, 1, 3,
+	1, 2, 3
 };
 
+float vertexData[] = {
+	-0.5, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+	-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
+	-0.5, 0.5, 0.0, 0.25, 0.52, 0.0, 0.0, 1.0, 
+	0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
+	0.5, -0.5, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0
+};
+
+float testData[] = {
+	-0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+	-0.5, -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+	0.5, -0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+};
 const char *vertexSource = 
 "#version 330 core\n"
 "layout (location = 0) in vec3 aPos;\n"
@@ -55,6 +65,7 @@ const char *fragmentSource =
 shader s;
 GLuint VAO;
 GLuint VBO;
+GLuint EBO;
 GLuint texture;
 
 void createTriangle()
@@ -72,14 +83,15 @@ void createTriangle()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
 	glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 8 * sizeof(float)); // Alternative to glVertexAttribPointer
 	glVertexArrayVertexBuffer(VAO, 1, VBO, (GLintptr)(3 * sizeof(GL_FLOAT)), 8 * sizeof(float));
 	glVertexArrayVertexBuffer(VAO, 2, VBO, (GLintptr)(6 * sizeof(GL_FLOAT)), 8 * sizeof(float));
-
-	
 
 	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(GL_FLOAT)));
@@ -88,15 +100,25 @@ void createTriangle()
 	glEnableVertexAttribArray(2);
 	glBindVertexArray(0); // Breaks the existing VAO binding.
 
-	unsigned char *data = stbi_load("test_texture.png", &width, &height, &numChannels, 0);
+	unsigned char *data = stbi_load("brick.jpg", &width, &height, &numChannels, 0);
+	if (!data) {
+		printf("\n Failed to load Texture");
+		return;
+	}
+	printf("\n Num Channels : %i", numChannels);
+	printf("\n Width : %i", width);
+	printf("\n Height : %i", height);
+	
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 	glGenerateMipmap(GL_TEXTURE_2D);
+
 	stbi_image_free(data);
 	
 }
@@ -110,5 +132,6 @@ void triangleLoop(HDC *hDc)
 	float val = (sin(timeValue) + 1.0f) / 2.0f; printf("val: %f \n", val);
 	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	SwapBuffers(*hDc);
 }

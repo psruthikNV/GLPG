@@ -26,7 +26,7 @@ float vertexData[] = {
 	0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
 	-0.5, 0.5, 0.0, 0.25, 0.52, 0.0, 0.0, 1.0, 
 	0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
-	0.5, -0.5, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0
+	0.5, -0.5, 0.0, 0.0, 0.1, 0.0, 1.0, 0.0
 };
 
 float testData[] = {
@@ -89,12 +89,13 @@ void createTriangle()
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-	glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 8 * sizeof(float)); // Alternative to glVertexAttribPointer
-	glVertexArrayVertexBuffer(VAO, 1, VBO, (GLintptr)(3 * sizeof(GL_FLOAT)), 8 * sizeof(float));
-	glVertexArrayVertexBuffer(VAO, 2, VBO, (GLintptr)(6 * sizeof(GL_FLOAT)), 8 * sizeof(float));
+	//glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 8 * sizeof(float)); // Alternative to glVertexAttribPointer. Okay this isn't the case.
+	//glVertexArrayVertexBuffer(VAO, 1, VBO, (GLintptr)(3 * sizeof(GL_FLOAT)), 8 * sizeof(float));
+	//glVertexArrayVertexBuffer(VAO, 2, VBO, (GLintptr)(6 * sizeof(GL_FLOAT)), 8 * sizeof(float));
 
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	//glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(GL_FLOAT)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(GL_FLOAT)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(GL_FLOAT)));
 	glEnableVertexAttribArray(0); // By default, all client side capabilities are disabled. We need to enable any shader inputs
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
@@ -112,12 +113,13 @@ void createTriangle()
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
+	glGenerateMipmap(GL_TEXTURE_2D); // Looks like we have to call this function always to get some tex output??
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(data);
 	
@@ -127,6 +129,7 @@ void triangleLoop(HDC *hDc)
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	s.use();
+	glBindTexture(GL_TEXTURE_2D, texture);
 	glBindVertexArray(VAO);
 	double timeValue = t.getTime()*0.001*0.001;
 	float val = (sin(timeValue) + 1.0f) / 2.0f; printf("val: %f \n", val);
@@ -134,4 +137,5 @@ void triangleLoop(HDC *hDc)
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	SwapBuffers(*hDc);
+	glBindVertexArray(0);
 }

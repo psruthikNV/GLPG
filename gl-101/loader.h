@@ -35,6 +35,7 @@ PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding;
 PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM4FPROC glUniform4f;
+PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
 
@@ -103,5 +104,6 @@ void loadGlFunctions(void)
 	glVertexArrayVertexBuffer = (PFNGLVERTEXARRAYVERTEXBUFFERPROC)loadFunction("glVertexArrayVertexBuffer");
 	glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)loadFunction("glGetUniformLocation");
 	glUniform4f = (PFNGLUNIFORM4FPROC)loadFunction("glUniform4f");
+	glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)loadFunction("glUniformMatrix4fv");
 	glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)loadFunction("glGenerateMipmap");
 }

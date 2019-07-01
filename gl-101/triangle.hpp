@@ -5,9 +5,13 @@
 #include "timer.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "utils/math/template_math_ops.hpp"
 
 timer t;
 int vertexColorLocation;
+int modelMatrixLocation;
+mat4x4_f modelMatrix;
+vec<3, float> translateVector;
 
 float vertices[] = {
 	-0.5, -0.5, 0.0,
@@ -39,11 +43,13 @@ const char *vertexSource =
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColor;\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
+"uniform mat4 modelMatrix;\n"
 "out vec3 aColorOut;\n"
 "out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"   gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"   //gl_position = vec4(aPos.x, aPos.y, aPos.z, 1.0);"
 "	TexCoord = aTexCoord;\n"
 "   //aColorOut = aColor;\n"
 "}\0";
@@ -58,7 +64,7 @@ const char *fragmentSource =
 "void main()\n"
 "{\n"
 "   //FragColor = vec4(aColorOut.x, aColorOut.y, aColorOut.z, 1.0);\n"
-"   FragColor = aColorOut;\n"
+"   //FragColor = aColorOut;\n"
 "	FragColor = texture(texSampler, TexCoord);\n"
 "}\n\0";
 
@@ -75,6 +81,7 @@ void createTriangle()
 	s.compileShader(fragmentSource, 1);
 	s.linkShader();
 	vertexColorLocation = glGetUniformLocation(s.pId, "aColorOut");
+	modelMatrixLocation = glGetUniformLocation(s.pId, "modelMatrix");
 
 	glClearColor(0.0, 0.5, 1.0, 0.0);
 	//glViewport(0, 0, 1920, 1080); // Sets the coordinates for NDC to Window Coord conversion
@@ -122,17 +129,27 @@ void createTriangle()
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(data);
-	
+	std::cout << "Model Matrix : " << modelMatrix << std::endl;
+	//translateVector[0] = 1.0f;
+	translateVector[1] = 1.0f;
+	modelMatrix = translate(modelMatrix, translateVector);
+	std::cout << "Model Matrix : " << modelMatrix << std::endl;
 }
 
 void triangleLoop(HDC *hDc)
 {
+	const GLfloat vals[16] = { 1, 0, 0, 0.5, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+	GLenum err;
+	translateVector[0] = 0.5f;
 	glClear(GL_COLOR_BUFFER_BIT);
 	s.use();
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glBindVertexArray(VAO);
 	double timeValue = t.getTime()*0.001*0.001;
-	float val = (sin(timeValue) + 1.0f) / 2.0f; printf("val: %f \n", val);
+	float val = (sin(timeValue) + 1.0f) / 2.0f;
+	//printf("val: %f \n", val);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, modelMatrix.data());
+	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, vals);
 	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

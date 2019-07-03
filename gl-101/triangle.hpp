@@ -23,7 +23,7 @@ unsigned int indices[] = {
 	0, 1, 3,
 	1, 2, 3
 };
-
+/*
 float vertexData[] = {
 	-0.5, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
 	-0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
@@ -31,6 +31,15 @@ float vertexData[] = {
 	-0.5, 0.5, 0.0, 0.25, 0.52, 0.0, 0.0, 1.0, 
 	0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
 	0.5, -0.5, 0.0, 0.0, 0.1, 0.0, 1.0, 0.0
+};*/
+
+float vertexData[] = {
+	0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
+	0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+	0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0,
+	0.0, 0.5, 0.0, 0.25, 0.52, 0.0, 0.0, 1.0,
+	0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0,
+	0.5, 0.0, 0.0, 0.0, 0.1, 0.0, 1.0, 0.0
 };
 
 float testData[] = {
@@ -43,13 +52,14 @@ const char *vertexSource =
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColor;\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
+"//aPos.x = aPos.x + 1.0;\n"
 "uniform mat4 modelMatrix;\n"
 "out vec3 aColorOut;\n"
 "out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 "   gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"   //gl_position = vec4(aPos.x, aPos.y, aPos.z, 1.0);"
+"   //gl_Position = vec4(aPos.x - 0.5, aPos.y, aPos.z, 1.0);"
 "	TexCoord = aTexCoord;\n"
 "   //aColorOut = aColor;\n"
 "}\0";
@@ -130,15 +140,18 @@ void createTriangle()
 
 	stbi_image_free(data);
 	std::cout << "Model Matrix : " << modelMatrix << std::endl;
-	//translateVector[0] = 1.0f;
-	translateVector[1] = 1.0f;
+	translateVector[0] = 0.5f;
+	//translateVector[1] = 1.0f;
 	modelMatrix = translate(modelMatrix, translateVector);
 	std::cout << "Model Matrix : " << modelMatrix << std::endl;
 }
 
 void triangleLoop(HDC *hDc)
 {
-	const GLfloat vals[16] = { 1, 0, 0, 0.5, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+	const GLfloat vals[16] = { 1, 0, 0, -0.5,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1 };
 	GLenum err;
 	translateVector[0] = 0.5f;
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -148,9 +161,12 @@ void triangleLoop(HDC *hDc)
 	double timeValue = t.getTime()*0.001*0.001;
 	float val = (sin(timeValue) + 1.0f) / 2.0f;
 	//printf("val: %f \n", val);
-	glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, modelMatrix.data());
-	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, vals);
+	std::cout << "Model matrix values: " << modelMatrix << std::endl;
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
+	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, vals);
 	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, vals);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	SwapBuffers(*hDc);

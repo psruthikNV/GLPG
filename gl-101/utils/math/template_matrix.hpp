@@ -43,7 +43,8 @@ public:
 	 * Verify this assumption 
 	 * TODO: Must be made private
 	 */
-	std::array<T, cols> row[rows]{};
+	//std::array<T, cols> row[rows]{};
+	std::array<std::array<T, cols>, rows> values{};
 
 	/* Functions */
 	T* data();
@@ -53,14 +54,14 @@ template <std::size_t R, std::size_t C, typename T>
 matrix<R, C, T>::matrix()
 {
 	for (std::size_t i = 0; i < rows; i++)
-		row[i][i] = T(1);
+		values[i][i] = T(1);
 }
 
 template <std::size_t R, std::size_t C, typename T>
 matrix<R, C, T>::matrix(T val)
 {
 	for (std::size_t i = 0; i < rows; i++)
-		row[i][i] = val;
+		values[i][i] = val;
 }
 
 template <std::size_t R, std::size_t C, typename T>
@@ -70,7 +71,7 @@ matrix<R, C, T>::matrix(std::initializer_list<T> vals)
 	std::size_t j = 0;
 
 	for (auto val : vals) {
-		row[i][j++] = val;
+		values[i][j++] = val;
 		i = ((j == C) && !(j = 0)) ? ++i : i;
 	}
 }
@@ -81,7 +82,7 @@ std::ostream& operator<<(std::ostream& os, matrix<R, C, T>& m)
 	os << std::endl;
 	for (int i = 0; i < R; i++) {
 		for (int j = 0; j < C; j++)
-			os << m.row[i][j] << " ";
+			os << m.values[i][j] << " ";
 		os << std::endl;
 	}
 	return os;
@@ -90,13 +91,13 @@ std::ostream& operator<<(std::ostream& os, matrix<R, C, T>& m)
 template <std::size_t R, std::size_t C, typename T>
 std::array<T, C>& matrix<R, C, T>::operator[](std::size_t idx)
 {
-	return row[idx];
+	return values[idx];
 }
 
 template <std::size_t R, std::size_t C, typename T>
 std::array<T, C> matrix<R, C, T>::operator[](std::size_t idx) const
 {
-	return row[idx];
+	return values[idx];
 }
 
 template <std::size_t R, std::size_t C, typename T>
@@ -120,7 +121,7 @@ constexpr std::size_t matrix<R, C, T>::numVals() const
 template <std::size_t R, std::size_t C, typename T>
 T* matrix<R, C, T>::data()
 {
-	return row[0].data();
+	return values[0].data();
 }
 
 using mat4x4_i = matrix<4, 4, int>;

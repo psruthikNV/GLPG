@@ -48,24 +48,27 @@ float testData[] = {
 	0.5, -0.5, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
 };
 const char *vertexSource = 
-"#version 330 core\n"
+"#version 460 core\n"
+"//#extension GL_ARB_explicit_uniform_location: require\n"
 "layout (location = 0) in vec3 aPos;\n"
 "layout (location = 1) in vec3 aColor;\n"
 "layout (location = 2) in vec2 aTexCoord;\n"
 "//aPos.x = aPos.x + 1.0;\n"
+"//layout (location = 3) uniform mat4 modelMatrix;\n"
 "uniform mat4 modelMatrix;\n"
 "out vec3 aColorOut;\n"
 "out vec2 TexCoord;\n"
 "void main()\n"
 "{\n"
 "   gl_Position = modelMatrix * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"   //gl_Position = vec4(aPos.x - 0.5, aPos.y, aPos.z, 1.0);"
+"   //gl_Position = vec4(aPos.x + 0.5, aPos.y, aPos.z, 1.0);"
+"   //aTexCoord.x += 0.5;\n"
 "	TexCoord = aTexCoord;\n"
-"   //aColorOut = aColor;\n"
+"   aColorOut = aColor;\n"
 "}\0";
 
 const char *fragmentSource = 
-"#version 330 core\n"
+"#version 460 core\n"
 "uniform vec4 aColorOut;\n"
 "//in vec3 aColorOut;\n"
 "out vec4 FragColor;\n"
@@ -75,6 +78,7 @@ const char *fragmentSource =
 "{\n"
 "   //FragColor = vec4(aColorOut.x, aColorOut.y, aColorOut.z, 1.0);\n"
 "   //FragColor = aColorOut;\n"
+"   //TexCoord.x -= 0.5;\n"
 "	FragColor = texture(texSampler, TexCoord);\n"
 "}\n\0";
 
@@ -92,6 +96,7 @@ void createTriangle()
 	s.linkShader();
 	vertexColorLocation = glGetUniformLocation(s.pId, "aColorOut");
 	modelMatrixLocation = glGetUniformLocation(s.pId, "modelMatrix");
+	std::cout << "Location of modelMatrix : " << modelMatrixLocation << std::endl;
 
 	glClearColor(0.0, 0.5, 1.0, 0.0);
 	//glViewport(0, 0, 1920, 1080); // Sets the coordinates for NDC to Window Coord conversion
@@ -129,6 +134,9 @@ void createTriangle()
 	
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
+	GLint activeTexture;
+	glGetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
+	std::cout << "Active Texture : " << activeTexture << std::endl;
 	
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -161,11 +169,12 @@ void triangleLoop(HDC *hDc)
 	double timeValue = t.getTime()*0.001*0.001;
 	float val = (sin(timeValue) + 1.0f) / 2.0f;
 	//printf("val: %f \n", val);
-	std::cout << "Model matrix values: " << modelMatrix << std::endl;
+	//glUniformMatrix4fv(3, 1, GL_TRUE, modelMatrix.data());
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
 	//glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, vals);
 	glUniform4f(vertexColorLocation,val, 0.0f, 0.0f, 1.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glUniformMatrix4fv(3, 1, GL_TRUE, vals);
 	glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, vals);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

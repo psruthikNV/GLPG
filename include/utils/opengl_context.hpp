@@ -26,7 +26,8 @@ class glContext
     public:
         glContext();
         glContext(nativeWindow &window);
-        glContext(nativeWindow &window, uint32_t minVersion, uint32_t majorVersion);
-        bool initializeGlContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion);
+        glContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion);
+        bool initializeGlContext(nativeWindow &window, uint32_t majorVersion,
+                                 uint32_t minorVersion);
         bool swapBuffers();
 };

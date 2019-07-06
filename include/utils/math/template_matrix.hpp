@@ -50,21 +50,21 @@ class matrix
         T* data();
 };
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 matrix<R, C, T>::matrix()
 {
     for (std::size_t i = 0; i < rows; i++)
         values[i][i] = T(1);
 }
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 matrix<R, C, T>::matrix(T val)
 {
     for (std::size_t i = 0; i < rows; i++)
         values[i][i] = val;
 }
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 matrix<R, C, T>::matrix(std::initializer_list<T> vals)
 {
     std::size_t i = 0;
@@ -76,7 +76,7 @@ matrix<R, C, T>::matrix(std::initializer_list<T> vals)
     }
 }
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 std::ostream& operator<<(std::ostream& os, matrix<R, C, T>& m)
 {
     os << std::endl;
@@ -88,7 +88,7 @@ std::ostream& operator<<(std::ostream& os, matrix<R, C, T>& m)
     return os;
 }
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 std::array<T, C>& matrix<R, C, T>::operator[](std::size_t idx)
 {
     return values[idx];
@@ -118,7 +118,7 @@ constexpr std::size_t matrix<R, C, T>::numVals() const
     return size;
 }
 
-    template <std::size_t R, std::size_t C, typename T>
+template <std::size_t R, std::size_t C, typename T>
 T* matrix<R, C, T>::data()
 {
     return values[0].data();

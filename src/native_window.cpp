@@ -31,8 +31,9 @@ bool nativeWindow::createNativeXcbWindow()
     xcbScreen = xcb_setup_roots_iterator(xcb_get_setup(xcbConnection)).data;
     xcbWindow = xcb_generate_id(xcbConnection);
 
-    xcb_create_window(xcbConnection, XCB_COPY_FROM_PARENT, xcbWindow, xcbScreen->root, 0, 0,
-                      windowWidth, windowHeight, 10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+    xcb_create_window(xcbConnection, XCB_COPY_FROM_PARENT, xcbWindow,
+                      xcbScreen->root, 0, 0, windowWidth, windowHeight,
+                      10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
                       xcbScreen->root_visual, 0, NULL);
     xcb_map_window(xcbConnection, xcbWindow);
     xcb_flush(xcbConnection);

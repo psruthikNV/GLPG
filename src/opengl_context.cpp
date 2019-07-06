@@ -1,6 +1,7 @@
 #include "utils/opengl_context.hpp"
 
-bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion)
+bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
+                                    uint32_t minorVersion)
 {
     bool ret;
 
@@ -46,9 +47,11 @@ bool glContext::initializeEglBackend(nativeWindow &window)
         return false;
     }
 
-    ret = eglChooseConfig(eglRes.display, config_attrib_list, &eglRes.config, 1, &numConfig);
+    ret = eglChooseConfig(eglRes.display, config_attrib_list,
+                          &eglRes.config, 1, &numConfig);
     if (!ret) {
-        std::cout << "Failed to choose an EGLConfig for the provided configuration" << std::endl;
+        std::cout << "Failed to choose an EGLConfig for \\
+                      the provided configuration" << std::endl;
         return false;
     }
 
@@ -72,7 +75,8 @@ bool glContext::initializeEglBackend(nativeWindow &window)
         return false;
     }
 
-    ret = eglMakeCurrent(eglRes.display, eglRes.surface, eglRes.surface, eglRes.context);
+    ret = eglMakeCurrent(eglRes.display, eglRes.surface,
+                         eglRes.surface, eglRes.context);
     if (!ret) {
         std::cout << "Failed to make EGLContext current" << std::endl;
         return false;

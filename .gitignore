@@ -263,3 +263,6 @@ __pycache__/
 /gl-101/test_texture.PNG
 /gl-101/container.jpg
 /gl-101/texture.jpg
+
+# Ninja make files
+*.ninja

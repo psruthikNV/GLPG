@@ -2,8 +2,8 @@
 
 nativeWindow::nativeWindow(uint32_t w, uint32_t h)
 {
-	windowWidth = w;
-	windowHeight = h;
+    windowWidth = w;
+    windowHeight = h;
 }
 
 bool nativeWindow::createNativeWindow()
@@ -32,8 +32,8 @@ bool nativeWindow::createNativeXcbWindow()
     xcbWindow = xcb_generate_id(xcbConnection);
 
     xcb_create_window(xcbConnection, XCB_COPY_FROM_PARENT, xcbWindow, xcbScreen->root, 0, 0,
-                    windowWidth, windowHeight, 10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-                    xcbScreen->root_visual, 0, NULL);
+                      windowWidth, windowHeight, 10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                      xcbScreen->root_visual, 0, NULL);
     xcb_map_window(xcbConnection, xcbWindow);
     xcb_flush(xcbConnection);
 

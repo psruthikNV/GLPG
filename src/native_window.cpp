@@ -21,6 +21,7 @@ bool nativeWindow::createNativeWindow()
     return true;
 }
 
+#ifdef __linux__
 bool nativeWindow::createNativeXcbWindow()
 {
     xcbConnection = xcb_connect(NULL, NULL);
@@ -41,9 +42,48 @@ bool nativeWindow::createNativeXcbWindow()
     return true;
 }
 
-#ifdef __linux__
 xcb_window_t nativeWindow::getNativeHandle() const
 {
     return xcbWindow;
+}
+#elif defined _WIN32
+
+HDC nativeWindow::getNativeHandle() const
+{
+    return (GetDC(hWindow));
+}
+
+static LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
+	{
+	case WM_CREATE:
+	break;
+
+	case WM_CLOSE:
+		OutputDebugString("Closing the Window");
+		PostQuitMessage(0);
+		return 0;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+bool nativeWindow::createNativeWin32Window()
+{
+    hInstance = GetModuleHandle(NULL);
+    wc.lpfnWndProc = windowProc;
+    wc.hInstance = hInstance;
+    wc.lpszClassName = "Window Class";
+    wc.style = CS_OWNDC;
+
+    if (!RegisterClass(&wc)) {
+        std::cout << "Failed to register Window Class for Win32 Window" << std::endl;
+        return false;
+    }
+
+    hWindow = CreateWindow("Window Class", "Test", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+                           0, 0, 800, 600, 0, 0, hInstance, 0);
+    return true;
 }
 #endif

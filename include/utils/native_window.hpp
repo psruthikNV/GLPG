@@ -1,10 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include <unistd.h>
 
 #ifdef __linux__
 #include <xcb/xcb.h>
+#elif defined _WIN32
+#include <Windows.h>
 #endif
 
 class nativeWindow
@@ -20,6 +21,9 @@ class nativeWindow
         bool createNativeXcbWindow();
 #elif defined _WIN32
         HWND hWindow;
+        HINSTANCE hInstance;
+        WNDCLASS wc = {};
+
         bool createNativeWin32Window();
 #endif
     public:
@@ -34,6 +38,8 @@ class nativeWindow
         bool createNativeWindow();
 #ifdef __linux__
         xcb_window_t getNativeHandle() const;
+#elif defined _WIN32
+        HDC getNativeHandle() const;
 #endif
 };
 

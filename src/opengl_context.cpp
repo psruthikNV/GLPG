@@ -13,6 +13,7 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
 #elif defined _WIN32
     ret = initializeWglBackend(window);
 #endif
+
     if (!ret) {
         std::cout << "Failed to initialize OpenGL Windowing API" << std::endl;
         return false;
@@ -20,6 +21,7 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
     return true;
 };
 
+#ifdef __linux__
 bool glContext::initializeEglBackend(nativeWindow &window)
 {
     EGLBoolean ret;
@@ -84,11 +86,115 @@ bool glContext::initializeEglBackend(nativeWindow &window)
 
     return true;
 }
+#elif defined _WIN32
+bool glContext::createDummyGlContext()
+{
+    PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		PFD_TYPE_RGBA,
+		32,
+		0, 0, 0, 0, 0, 0,
+		0,
+		0,
+		0,
+		0, 0, 0, 0,
+		24,
+		8,
+		0,
+		0,
+		0,
+		0,0,0
+	};
+
+	if (!(wglRes.pixelFormat = ChoosePixelFormat(wglRes.hDc, &pfd))) {
+        std::cout << "Failed to choose pixel format" << std::endl;
+        return false;
+    }
+	if (!SetPixelFormat(wglRes.hDc, wglRes.pixelFormat, &pfd)) {
+        std::cout << "Failed to set pixel format" << std::endl;
+        return false;
+    }
+	if (!(wglRes.tempHglrc = wglCreateContext(wglRes.hDc))) {
+        std::cout << "Failed to create WGL Context" << std::endl;
+        return false;
+    }
+
+	if (!wglMakeCurrent(wglRes.hDc, wglRes.tempHglrc)) {
+        std::cout << "Failed to make the WGL Context current" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+/*
+bool glContext::createActualGlContext()
+{
+    int pixelFormatsIdx[10];
+	UINT pfn;
+
+	const int pixelFormatAttribs[] =
+	{
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+		WGL_COLOR_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		0,
+	};
+
+	if (wglChoosePixelFormatARB(hDc, pixelFormatAttribs, NULL, 5, pixelFormatsIdx, &pfn) == FALSE) {
+		std::cout << "Failed to choose pixel format" << std::endl;
+        return false;
+	}
+
+	if (SetPixelFormat(hDc, pixelFormatsIdx[0], NULL) == FALSE) {
+		std::cout << "Failed to set pixel format" << std::endl;
+        return false;
+    }
+
+	const int contextAttrib[] =
+	{
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 5, // Use 4.5 instead of 4.6 due to outdated Intel gen9 drivers
+		WGL_CONTEXT_FLAGS_ARB, 0,
+		0
+	};
+
+	hGlrc = wglCreateContextAttribsARB(hDc, 0, contextAttrib);
+	wglMakeCurrent(NULL, NULL);
+	wglDeleteContext(temp_hGlrc);
+	wglMakeCurrent(hDc, hGlrc);
+
+    return false;
+}
+*/
+bool glContext::initializeWglBackend(nativeWindow &window)
+{
+    wglRes.hDc = window.getNativeHandle();
+    if (!createDummyGlContext()) {
+        std::cout << "Failed to create WGL Context" << std::endl;
+        return false;
+    }/*
+    else if (!createActualGlContext()) {
+        std::cout << "Failed to create actual WGL Contxt" << std::endl;
+        return false;
+    }*/
+
+    return true;
+}
+#endif
 
 bool glContext::swapBuffers()
 {
 #ifdef __linux__
     eglSwapBuffers(eglRes.display, eglRes.surface);
+#elif defined _WIN32
+    SwapBuffers(wglRes.hDc);
 #endif
     return true;
 }

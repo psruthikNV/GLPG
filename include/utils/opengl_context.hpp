@@ -12,6 +12,7 @@ class glContext
             uint32_t glContextMajorVersion;
         };
         glContextConfig glConfig;
+        #ifdef __linux__
         struct eglResources
         {
             EGLDisplay display;
@@ -20,9 +21,21 @@ class glContext
             EGLSurface surface;
         };
         eglResources eglRes;
-        bool loadGlFunctions();
-        EGLDisplay eglDisplay;
         bool initializeEglBackend(nativeWindow &window);
+        #elif defined _WIN32
+        struct wglResources
+        {
+            HGLRC tempHglrc;
+            HGLRC hGlrc;
+            HDC hDc;
+            int pixelFormat;
+        };
+        wglResources wglRes;
+        bool initializeWglBackend(nativeWindow &window);
+        bool createDummyGlContext();
+        bool createActualGlContext();
+        #endif
+        bool loadGlFunctions();
     public:
         glContext();
         glContext(nativeWindow &window);

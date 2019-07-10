@@ -1,3 +1,6 @@
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #include <GL/gl.h>
 
 #include "utils/native_window.hpp"
@@ -13,6 +16,6 @@ int main()
     glClear(GL_COLOR_BUFFER_BIT);
     glFlush();
     gc.swapBuffers();
-    sleep(10);
+    system("pause");
     return 0;
 }

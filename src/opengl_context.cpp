@@ -18,6 +18,10 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
         std::cout << "Failed to initialize OpenGL Windowing API" << std::endl;
         return false;
     }
+
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "GPU: " << glGetString(GL_RENDERER) << std::endl;
+
     return true;
 };
 

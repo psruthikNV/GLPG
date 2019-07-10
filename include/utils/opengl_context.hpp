@@ -2,6 +2,7 @@
 #ifdef __linux__
 #include <EGL/egl.h>
 #endif
+#include <GL/gl.h>
 
 class glContext
 {

@@ -21,6 +21,7 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
 
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GPU: " << glGetString(GL_RENDERER) << std::endl;
+    //std::cout << "OpenGL Extensions: " << glGetString(GL_EXTENSIONS) << std::endl;
 
     return true;
 };

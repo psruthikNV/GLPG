@@ -2,8 +2,9 @@
 #ifdef __linux__
 #include <EGL/egl.h>
 #endif
+#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-
+#include <GL/glext.h>
 class glContext
 {
     private:

@@ -4,14 +4,10 @@
 #include <vector>
 #include "utils/opengl_shader_utils.hpp"
 
-static void checkGLError(int lineNo)
-{
-    std::cout << "Line : " << lineNo << " GL Error : " << glGetError() << std::endl;
-}
 const float vertexData[] = {
-    -0.5, -0.5, 0.0,
-    0.5, -0.5, 0.0,
-    0.5, 0.0, 0.0
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
 };
 
 const char *vertexShaderSource =
@@ -19,8 +15,7 @@ const char *vertexShaderSource =
     "layout (location = 0) in vec3 vertexPosition;\n"
     "void main()\n"
     "{\n"
-    "   //gl_Position = vec4(vertexPosition, 1.0);\n"
-    "   gl_Position = vec4(vertexPosition.x, vertexPosition.y, vertexPosition.z, 1.0);\n"
+    "   gl_Position = vec4(vertexPosition, 1.0);\n"
     "}\0";
 const char *fragmentShaderSource = 
     "#version 450 core\n"
@@ -76,7 +71,7 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertexData);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);

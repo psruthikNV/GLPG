@@ -1,10 +1,17 @@
+#pragma once
+
 #include "native_window.hpp"
 #ifdef __linux__
 #include <EGL/egl.h>
 #endif
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+#include <gl\GL.h>
+#include <gl\glext.h>
+#include <gl\wglext.h>
+//#include "utils/opengl_loader.hpp"
+
 class glContext
 {
     private:
@@ -37,7 +44,6 @@ class glContext
         bool createDummyGlContext();
         bool createActualGlContext();
         #endif
-        bool loadGlFunctions();
     public:
         glContext();
         glContext(nativeWindow &window);

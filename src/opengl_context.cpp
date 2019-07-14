@@ -13,7 +13,7 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
 #elif defined _WIN32
     ret = initializeWglBackend(window);
 #endif
-
+    //loadGLFunctions();
     if (!ret) {
         std::cout << "Failed to initialize OpenGL Windowing API" << std::endl;
         return false;

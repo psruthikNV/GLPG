@@ -1,8 +1,10 @@
 #include "utils/opengl_shader_utils.hpp"
-
+#include <Windows.h>
+#include <gl/GL.h>
 #include <iostream>
 #include <vector>
-extern bool compileShader(GLuint &shaderObject, const char *shaderSource)
+#include "utils/opengl_loader.hpp"
+extern bool compileShader(int shaderObject, const char *shaderSource)
 {
     int success = GL_FALSE;
     glShaderSource(shaderObject, 1, &shaderSource, nullptr);
@@ -27,7 +29,7 @@ extern bool compileShader(GLuint &shaderObject, const char *shaderSource)
     return true;
 }
 
-extern bool linkShaders(GLuint &programObject)
+extern bool linkShaders(int programObject)
 {
     int success = GL_FALSE;
 

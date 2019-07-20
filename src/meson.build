@@ -6,6 +6,6 @@ elif host_machine.system() == 'windows'
     deps = [lib_user32, lib_gl]
 endif
 
-libglpg = shared_library('GLPG', test_src,
+libglpg = static_library('GLPG', test_src,
                          include_directories : glpg_include_path,
                          dependencies : deps)

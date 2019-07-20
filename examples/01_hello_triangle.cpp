@@ -1,6 +1,5 @@
 #include "utils/native_window.hpp"
 #include "utils/opengl_context.hpp"
-#include <vector>
 #include "utils/opengl_shader_utils.hpp"
 #ifdef __linux__
 #include <unistd.h>
@@ -46,7 +45,6 @@ int main()
         std::cout << "Failed to initialize GL Context" << std::endl;
         return -1;
     }
-    //loadGLFunctions();
 
     vtxShaderObj = glCreateShader(GL_VERTEX_SHADER);
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);

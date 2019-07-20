@@ -12,7 +12,7 @@ class vec
         /* Constructors */
         vec();
         vec(T val);
-        vec(T v[length]);
+        vec(std::initializer_list<T> values);
 
         /* Operators */
         T operator[](std::size_t idx) const;
@@ -33,15 +33,17 @@ vec<L, T>::vec()
 template <std::size_t L, typename T>
 vec<L, T>::vec(T val)
 {
-    for (std::size_t i = 0; i < length; i++)
+    for (std::size_t i = 0; i < length; i++) {
         vals[i] = val;
+    }
 }
 
 template <std::size_t L, typename T>
-vec<L, T>::vec(T v[length])
+vec<L, T>::vec(std::initializer_list<T> values)
 {
-    for (std::size_t i = 0; i < length; i++) {
-        vals[i] = v[i];
+    std::size_t i = 0;
+    for (auto val : values) {
+        vals[i++] = val;
     }
 }
 
@@ -72,3 +74,4 @@ std::ostream& operator<<(std::ostream& os, vec<L, T> &v)
 using vec4_i = vec<4, int>;
 using vec4_f = vec<4, float>;
 using vec4_d = vec<4, double>;
+using vec3_f = vec<3, float>;

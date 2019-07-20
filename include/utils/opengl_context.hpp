@@ -13,6 +13,33 @@
 #include <gl\wglext.h>
 #endif
 
+extern PFNGLGENBUFFERSPROC glGenBuffers;
+extern PFNGLBINDBUFFERPROC glBindBuffer;
+extern PFNGLBUFFERDATAPROC glBufferData;
+extern PFNGLGETSTRINGIPROC glGetStringi;
+extern PFNGLCREATESHADERPROC glCreateShader;
+extern PFNGLDELETESHADERPROC glDeleteShader;
+extern PFNGLSHADERSOURCEPROC glShaderSource;
+extern PFNGLCOMPILESHADERPROC glCompileShader;
+extern PFNGLGETSHADERIVPROC glGetShaderiv;
+extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
+extern PFNGLCREATEPROGRAMPROC glCreateProgram;
+extern PFNGLATTACHSHADERPROC glAttachShader;
+extern PFNGLLINKPROGRAMPROC glLinkProgram;
+extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
+extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
+extern PFNGLUSEPROGRAMPROC glUseProgram;
+extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+extern PFNGLVERTEXARRAYATTRIBBINDINGPROC glVertexArrayAttribBinding;
+extern PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
+extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
+extern PFNGLUNIFORM4FPROC glUniform4f;
+extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+
 class glContext
 {
     private:
@@ -45,6 +72,9 @@ class glContext
         bool createDummyGlContext();
         bool createActualGlContext();
         #endif
+        void *loadGLFunction(const char *name);
+        void initializeGLFunctionPointers();
+
     public:
         glContext();
         glContext(nativeWindow &window);

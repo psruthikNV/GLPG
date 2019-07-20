@@ -1,4 +1,5 @@
-project('glpg', 'cpp')
+project('glpg', 'cpp',
+        version : '0.0.1')
 
 glpg_include_path = include_directories('./include')
 glpg_compiler = meson.get_compiler('cpp')
@@ -13,3 +14,4 @@ elif host_machine.system() == 'windows'
 endif
 
 subdir('src')
+subdir('examples')

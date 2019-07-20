@@ -1,9 +1,11 @@
 #include "utils/opengl_shader_utils.hpp"
+#ifdef _WIN32
 #include <Windows.h>
-#include <gl/GL.h>
+#endif
+#include <GL/gl.h>
 #include <iostream>
 #include <vector>
-#include "utils/opengl_loader.hpp"
+
 extern bool compileShader(int shaderObject, const char *shaderSource)
 {
     int success = GL_FALSE;

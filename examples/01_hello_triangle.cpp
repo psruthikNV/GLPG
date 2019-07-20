@@ -1,56 +1,10 @@
 #include "utils/native_window.hpp"
 #include "utils/opengl_context.hpp"
 #include <vector>
-#include "utils/opengl_loader.hpp"
-
+#include "utils/opengl_shader_utils.hpp"
 #ifdef __linux__
 #include <unistd.h>
 #endif
-bool compileShader(int shaderObject, const char *shaderSource)
-{
-    int success = GL_FALSE;
-    glShaderSource(shaderObject, 1, &shaderSource, nullptr);
-    glCompileShader(shaderObject);
-    glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &success);
-
-    if (success != GL_TRUE) {
-        int shaderType;
-        int maxLength = 0;
-        glGetShaderiv(shaderObject, GL_SHADER_TYPE, &shaderType);
-        std::cout << "Shader compilation of type " << shaderType << " Failed!!"
-                  << std::endl;
-        glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &maxLength);
-        std::vector<char> errorLog(maxLength);
-        glGetShaderInfoLog(shaderObject, maxLength, &maxLength, &errorLog[0]);
-        //glDeleteShader(shaderObject);
-        std::string s(errorLog.begin(), errorLog.end());
-        std::cout << "Compilation Log: " << s << std::endl;
-        
-        return false;
-    }
-    return true;
-}
-
-bool linkShaders(int programObject)
-{
-    int success = GL_FALSE;
-
-    glLinkProgram(programObject);
-    glGetProgramiv(programObject, GL_LINK_STATUS, &success);
-
-    if (success != GL_TRUE) {
-        int maxLength = 0;
-        std::cout << "Shader Linking Failed !!" << std::endl;
-        glGetProgramiv(programObject, GL_INFO_LOG_LENGTH, &maxLength);
-        std::vector<char> errorLog(maxLength);
-        glGetProgramInfoLog(programObject, maxLength, &maxLength, &errorLog[0]);
-
-        std::string s(errorLog.begin(), errorLog.end());
-        std::cout << "Link Log : " << s << std::endl;
-        return false;
-    }
-    return true;
-}
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -72,6 +26,7 @@ const char *fragmentShaderSource =
     "{\n"
     "   fragmentColor = vec4(1.0, 0.0, 0.0, 0.0);\n"
     "}\0";
+
 int main()
 {
     nativeWindow win(640, 480);
@@ -91,7 +46,7 @@ int main()
         std::cout << "Failed to initialize GL Context" << std::endl;
         return -1;
     }
-    loadGLFunctions();
+    //loadGLFunctions();
 
     vtxShaderObj = glCreateShader(GL_VERTEX_SHADER);
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);

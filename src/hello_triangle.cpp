@@ -2,6 +2,10 @@
 #include "utils/opengl_context.hpp"
 #include <vector>
 #include "utils/opengl_loader.hpp"
+
+#ifdef __linux__
+#include <unistd.h>
+#endif
 bool compileShader(int shaderObject, const char *shaderSource)
 {
     int success = GL_FALSE;
@@ -77,7 +81,6 @@ int main()
     GLuint vtxShaderObj = 0;
     GLuint fragShaderObj = 0;
     GLuint programObj = 0;
-    int success = 0;
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create Native Window" << std::endl;
@@ -123,6 +126,10 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
     gc.swapBuffers();
+#ifdef _WIN32
     system("pause");
+#elif defined __linux__
+    sleep(5);
+#endif
     return 0;
 }

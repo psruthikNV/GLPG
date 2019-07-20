@@ -1,5 +1,4 @@
 #include "utils/opengl_context.hpp"
-
 bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
                                     uint32_t minorVersion)
 {
@@ -13,7 +12,6 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
 #elif defined _WIN32
     ret = initializeWglBackend(window);
 #endif
-    //loadGLFunctions();
     if (!ret) {
         std::cout << "Failed to initialize OpenGL Windowing API" << std::endl;
         return false;
@@ -57,8 +55,8 @@ bool glContext::initializeEglBackend(nativeWindow &window)
     ret = eglChooseConfig(eglRes.display, config_attrib_list,
                           &eglRes.config, 1, &numConfig);
     if (!ret) {
-        std::cout << "Failed to choose an EGLConfig for \\
-                      the provided configuration" << std::endl;
+        std::cout << "Failed to choose an EGLConfig for"
+                     "the provided configuration" << std::endl;
         return false;
     }
 

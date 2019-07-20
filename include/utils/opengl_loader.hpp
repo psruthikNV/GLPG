@@ -3,9 +3,11 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include <gl\GL.h>
-#include <gl\glext.h>
-#include <gl\wglext.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#ifdef _WIN32
+#include <GL/wglext.h>
+#endif
 
 
 PFNGLGENBUFFERSPROC glGenBuffers;
@@ -38,6 +40,7 @@ PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
 void *loadFunction(const char *name)
 {
+#ifdef _WIN32
 	void *f = (void *)wglGetProcAddress(name);
 
 	if (!f || (f == (void *)0x1) || (f == (void *)0x3)
@@ -50,6 +53,14 @@ void *loadFunction(const char *name)
 			return NULL;
 	}
 	return f;
+#elif defined __linux__
+    void *f = (void *)eglGetProcAddress(name);
+    if (!f) {
+        std::cout << "Failed to get load GL Function : " << name << std::endl;
+        return NULL;
+    }
+    return f;
+#endif
 }
 
 extern void loadGLFunctions()

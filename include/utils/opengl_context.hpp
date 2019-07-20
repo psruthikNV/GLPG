@@ -7,10 +7,11 @@
 #ifdef _WIN32
 #include <Windows.h>
 #endif
-#include <gl\GL.h>
-#include <gl\glext.h>
+#include <GL/gl.h>
+#include <GL/glext.h>
+#ifdef _WIN32
 #include <gl\wglext.h>
-//#include "utils/opengl_loader.hpp"
+#endif
 
 class glContext
 {

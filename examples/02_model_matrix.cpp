@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     GLuint modelMatrixLocation;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<> dist(-1.0, 1.0);
+    std::uniform_real_distribution<float> dist(-1.0, 1.0);
 
     if (argc > 1) {
         g_numTriangles = atoi(argv[1]);
@@ -94,9 +94,9 @@ int main(int argc, char **argv)
 
     for (uint32_t i = 0; i < g_numTriangles; i++) {
         mat4x4_f modelMatrix;
-        vec3_f translateVector = {static_cast<float>(dist(gen)),
-                                  static_cast<float>(dist(gen)),
-                                  static_cast<float>(dist(gen))};
+        vec3_f translateVector = {dist(gen),
+                                  dist(gen),
+                                  dist(gen)};
         modelMatrix = translate(modelMatrix, translateVector);
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
         glDrawArrays(GL_TRIANGLES, 0, 3);

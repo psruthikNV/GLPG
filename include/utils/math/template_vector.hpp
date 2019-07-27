@@ -28,6 +28,7 @@ class vec
         /* Functions */
         vec normalize();
         std::size_t length();
+        vec cross();
 };
 
 template <std::size_t L, typename T>
@@ -130,6 +131,15 @@ template <std::size_t L, typename T>
 vec<L, T> vec<L, T>::normalize()
 {
     return (this / length());
+}
+
+template <typename T>
+vec<3, T> vec<3, T>::cross(vec<3, T> &v1)
+{
+    vec<3, T> temp = {vals[1]*v1.vals[2] - vals[2]*v1.vals[1],
+                      vals[2]*v1.vals[0] - vals[0]*v1.vals[2],
+                      vals[0]*v1.vals[1] - vals[1]*v1.vals[0]}
+    return temp;
 }
 
 using vec4_i = vec<4, int>;

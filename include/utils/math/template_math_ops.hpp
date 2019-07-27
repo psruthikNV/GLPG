@@ -40,7 +40,7 @@ matrix<4, 4, T> translate(matrix<4, 4, T> &m, vec<3, T> &v )
 }
 
 template <typename T>
-matrix<4, 4, T> lookAt(vec<3, T> eye, vec<3, T> center, vec<3, T> up)
+matrix<4, 4, T> lookAt(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
 {
     
     vec<3, T> w = center.normalize();
@@ -48,9 +48,9 @@ matrix<4, 4, T> lookAt(vec<3, T> eye, vec<3, T> center, vec<3, T> up)
     vec<3, T> u = temp.normalize();
     vec<3, T> v = w.cross(u);
 
-    matrix<4, 4, T> viewMatrix = {u[0], u[1], u[2], eye[0],
-                                  v[0], v[1], v[2], eye[1],
-                                  w[0], w[1], w[2], eye[2],
+    matrix<4, 4, T> viewMatrix = {u[0], u[1], u[2], -eye[0],
+                                  v[0], v[1], v[2], -eye[1],
+                                  w[0], w[1], w[2], -eye[2],
                                   0, 0, 0, 1};
     return viewMatrix;
 }

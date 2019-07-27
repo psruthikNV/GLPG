@@ -15,12 +15,19 @@ class vec
         vec(std::initializer_list<T> values);
 
         /* Operators */
+        vec operator+(vec &) const;
+        vec operator-(vec &) const;
+        vec operator/(T val) const;
         T operator[](std::size_t idx) const;
         T& operator[](std::size_t idx);
         friend std::ostream& operator<< (std::ostream& os, const vec<L, T> &v);
 
         /* Getters */
         inline constexpr std::size_t getLength() const { return length;  }
+
+        /* Functions */
+        vec normalize();
+        std::size_t length();
 };
 
 template <std::size_t L, typename T>
@@ -71,7 +78,63 @@ std::ostream& operator<<(std::ostream& os, vec<L, T> &v)
     return os;
 }
 
+template <std::size_t L, typename T>
+vec<L, T> vec<L, T>::operator+(vec<L, T> v1) const
+{
+    vec<L, T> temp;
+
+    for (std::size_t i = 0; i < L; i++) {
+        temp[i] = vals[i] + v1[i];
+    }
+
+    return temp;
+}
+
+template <std::size_t L, typename T>
+vec<L, T> vec<L, T>::operator-(vec<L, T> v1) const
+{
+    vec<L, T> temp;
+
+    for (std::size_t i = 0; i < L; i++) {
+        temp[i] = vals[i] - v1[i];
+    }
+
+    return temp;
+}
+
+template <std::size_t L, typename T>
+vec<L, T> vec<L, T>::operator-(T val) const
+{
+    vec<L, T> temp;
+
+    for (std::size_t i = 0; i < L; i++) {
+        temp[i] = vals[i] / val;
+    }
+
+    return temp;
+}
+
+template <std::size_t, typenamae T>
+std::size_t vec<L, T>::length()
+{
+    std::size_t temp = 0;
+
+    for (std::size_t i = 0; i < L; i++) {
+        temp += vals[i] * vals[i];
+    }
+
+    return static_cast<std::size_t>(sqrt(temp));
+}
+
+template <std::size_t L, typename T>
+vec<L, T> vec<L, T>::normalize()
+{
+    return (this / length());
+}
+
 using vec4_i = vec<4, int>;
 using vec4_f = vec<4, float>;
 using vec4_d = vec<4, double>;
 using vec3_f = vec<3, float>;
+using vec3_i = vec<3, int>;
+using vec3_d = vec<3, double>;

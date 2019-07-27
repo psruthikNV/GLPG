@@ -38,6 +38,7 @@ int main(int argc, char **argv)
     GLuint programObj = 0;
     GLuint modelMatrixLocation = 0;
     GLuint cameraMatrixLocation = 0;
+    GLuint viewMatrixLocation = 0;
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create native window" << std::endl;
@@ -81,6 +82,8 @@ int main(int argc, char **argv)
     glEnableVertexAttribArray(0);
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
+    std::cout << "Model Matrix Location : " << modelMatrixLocation << std::endl;
+    std::cout << "View Matrix Location : " << viewMatrixLocation << std::endl;
 
     vec3_f upVector = {0.0, 1.0, 0.0};
     vec3_f eyePosition = {0.0, 0.0, -1.0};
@@ -89,7 +92,7 @@ int main(int argc, char **argv)
     mat4x4_f modelMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
     std::cout << "Model Matrix : " << modelMatrix << std::endl;
-    mat4_i viewMatrix = lookAt(eyePosition, viewVector, upVector);
+    mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
     std::cout << "View Matrix : " << viewMatrix << std::endl;
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);

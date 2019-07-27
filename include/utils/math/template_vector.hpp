@@ -6,7 +6,7 @@ template <std::size_t L, typename T>
 class vec
 {
     public:
-        static constexpr std::size_t length = L;
+        static constexpr std::size_t dims = L;
         std::array<T, L> vals = {};
 
         /* Constructors */
@@ -23,25 +23,25 @@ class vec
         friend std::ostream& operator<< (std::ostream& os, const vec<L, T> &v);
 
         /* Getters */
-        inline constexpr std::size_t getLength() const { return length;  }
+        inline constexpr std::size_t getLength() const { return dims;  }
 
         /* Functions */
         vec normalize();
         std::size_t length();
-        vec cross();
+        vec<3, T> cross(vec<3, T>&);
 };
 
 template <std::size_t L, typename T>
 vec<L, T>::vec()
 {
-    for (std::size_t i = 0; i < length; i++)
+    for (std::size_t i = 0; i < dims; i++)
         vals[i] = 0;
 }
 
 template <std::size_t L, typename T>
 vec<L, T>::vec(T val)
 {
-    for (std::size_t i = 0; i < length; i++) {
+    for (std::size_t i = 0; i < dims; i++) {
         vals[i] = val;
     }
 }
@@ -58,7 +58,7 @@ vec<L, T>::vec(std::initializer_list<T> values)
 template <std::size_t L, typename T>
 T vec<L, T>::operator[](std::size_t idx) const
 {
-    assert(idx < length);
+    assert(idx < dims);
     return vals[idx];
 
 }
@@ -66,7 +66,7 @@ T vec<L, T>::operator[](std::size_t idx) const
 template <std::size_t L, typename T>
 T& vec<L, T>::operator[](std::size_t idx)
 {
-    assert(idx < length);
+    assert(idx < dims);
     return vals[idx];
 }
 
@@ -80,7 +80,7 @@ std::ostream& operator<<(std::ostream& os, vec<L, T> &v)
 }
 
 template <std::size_t L, typename T>
-vec<L, T> vec<L, T>::operator+(vec<L, T> v1) const
+vec<L, T> vec<L, T>::operator+(vec<L, T> &v1) const
 {
     vec<L, T> temp;
 
@@ -92,7 +92,7 @@ vec<L, T> vec<L, T>::operator+(vec<L, T> v1) const
 }
 
 template <std::size_t L, typename T>
-vec<L, T> vec<L, T>::operator-(vec<L, T> v1) const
+vec<L, T> vec<L, T>::operator-(vec<L, T> &v1) const
 {
     vec<L, T> temp;
 
@@ -104,7 +104,7 @@ vec<L, T> vec<L, T>::operator-(vec<L, T> v1) const
 }
 
 template <std::size_t L, typename T>
-vec<L, T> vec<L, T>::operator-(T val) const
+vec<L, T> vec<L, T>::operator/(T val) const
 {
     vec<L, T> temp;
 
@@ -115,7 +115,7 @@ vec<L, T> vec<L, T>::operator-(T val) const
     return temp;
 }
 
-template <std::size_t, typenamae T>
+template <std::size_t L, typename T>
 std::size_t vec<L, T>::length()
 {
     std::size_t temp = 0;
@@ -130,15 +130,15 @@ std::size_t vec<L, T>::length()
 template <std::size_t L, typename T>
 vec<L, T> vec<L, T>::normalize()
 {
-    return (this / length());
+    return (*this / length());
 }
 
-template <typename T>
-vec<3, T> vec<3, T>::cross(vec<3, T> &v1)
+template <std::size_t L, typename T>
+vec<3, T> vec<L, T>::cross(vec<3, T> &v1)
 {
     vec<3, T> temp = {vals[1]*v1.vals[2] - vals[2]*v1.vals[1],
                       vals[2]*v1.vals[0] - vals[0]*v1.vals[2],
-                      vals[0]*v1.vals[1] - vals[1]*v1.vals[0]}
+                      vals[0]*v1.vals[1] - vals[1]*v1.vals[0]};
     return temp;
 }
 

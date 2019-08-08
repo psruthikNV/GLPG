@@ -1,4 +1,35 @@
-#include <random>
+/*
+ * 04 - Camera Matrix
+ * 
+ * This example implements a simple Camera matrix.
+ * 
+ * To implement the necessary transformations required to have the notion of a 
+ * movable camera, we have the concept of a camera matrix.
+ *
+ * In OpenGL and any rendering API for that matter, there is no "camera"
+ * as we generally think of it. A camera in the graphics world is just a construct
+ * that helps us to implement transformations so that we get the result of having a camera
+ * and the models in the scene being rendered through the lens of the camera.
+ * 
+ * The words camera and eye here have no difference other than the spelling.
+ * The coordinates that are obtained after multiplying the models with a model matrix
+ * are known as the world coordinates. This will be the world space.
+ *
+ * To get the effect of looking through a camera, we need to know what the coordinates of the models
+ * in the world are in terms of the camera. These coordinates are known as the camera or eye coordinates.
+ *
+ * A camera has a set place in the world. This place is described in terms of the world coordinates
+ * and becomes the camera coordinates or eye coordinates.
+ * A camera is also pointed in some direction in the world. Ideally, we'd like the camera to point towards the scene
+ * which in OpenGL is -z. This becoes the view vector.
+ * Finally, we need to specify the orientation of the camera because with just the eye and view vector, we will not
+ * have enough information about the orientation in which the scene must be rendered (upside down / right way up)
+ *
+ * With the above information, we can create a set of orthonormal vectors that define the camera space.
+ * Now, we can create a camera matrix where all the models are transformed w.r.t the position and orientation
+ * of the camera. This will lead the coordinates of the models being rendered at positions as if we were looking at
+ * them through a camera pointing at a specific direction.
+ */
 
 #include "utils/native_window.hpp"
 #include "utils/opengl_context.hpp"
@@ -82,18 +113,15 @@ int main(int argc, char **argv)
     glEnableVertexAttribArray(0);
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
-    std::cout << "Model Matrix Location : " << modelMatrixLocation << std::endl;
-    std::cout << "View Matrix Location : " << viewMatrixLocation << std::endl;
 
-    vec3_f upVector = {0.0, 1.0, 0.0};
+    vec3_f upVector = {1.0, 0.0, 0.0};
     vec3_f eyePosition = {0.0, 0.0, -1.0};
-    vec3_f viewVector = {0.0, 0.0, 1.0};
+    vec3_f viewVector = {0.0, 0.0, 1.0};.
     vec3_f translateVector = {0.0, 0.0, 0.0};
+
     mat4x4_f modelMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
-    std::cout << "Model Matrix : " << modelMatrix << std::endl;
     mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
-    std::cout << "View Matrix : " << viewMatrix << std::endl;
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 

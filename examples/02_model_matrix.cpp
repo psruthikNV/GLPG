@@ -1,3 +1,28 @@
+/*
+ * 02 - Model matrix
+ *
+ * This example introduces the concept of model matrices.
+ *
+ * OpenGL understands only one coordinate space and that is
+ * the Normalized Device coordinates. These coordinates range from
+ * [-1, 1]. Any fragment that has coordinates outside of this range
+ * ends up getting clipped.
+ *
+ * The Model matrix is unique to each model / set of vertices being rendered.
+ * The model will end up having its own coordinates where 0,0,0 would refer to the center
+ * of the model. While these coordinates can be directly used by OpenGL by passing them
+ * to the vertex shader, when there are multiple models imported into the game world,
+ * they all will end up at the same spot overlapping the already existing models in the same spot.
+ * 
+ * To circumvent that, we have the model matrix. The model matrix can consist of arbitary
+ * rotations/translations or any other transformation operation. Ideally, each model will have 
+ * a unique model matrix associated with it so that it is at a distinct place in the game world.
+ *
+ * Once we construct a model matrix, it can be passed to the vertex shader and multiplied with the 
+ * position of the vertices of the model to get the final transformed coordinates where the vertices end
+ * up getting drawn.
+ */
+
 #include <random>
 
 #include "utils/native_window.hpp"
@@ -5,6 +30,7 @@
 #include "utils/opengl_shader_utils.hpp"
 #include "utils/math/template_math_ops.hpp"
 
+// Number of triangles to be drawn
 int g_numTriangles = 3;
 
 const float vertexData[] = {
@@ -94,6 +120,8 @@ int main(int argc, char **argv)
 
     for (uint32_t i = 0; i < g_numTriangles; i++) {
         mat4x4_f modelMatrix;
+        // For each triangle being drawn we generate a random translation vector
+        // which is then used to create the model matrix.
         vec3_f translateVector = {dist(gen),
                                   dist(gen),
                                   dist(gen)};

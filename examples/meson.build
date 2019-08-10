@@ -17,3 +17,8 @@ executable('04_camera_matrix', '04_camera_matrix.cpp',
            include_directories : glpg_include_path,
            dependencies : deps,
            link_with : libglpg)
+
+executable('05_projection_matrix', '05_projection_matrix.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)

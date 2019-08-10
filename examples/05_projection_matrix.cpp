@@ -1,45 +1,12 @@
-/*
- * 04 - Camera Matrix
- * 
- * This example implements a simple Camera matrix.
- * 
- * To implement the necessary transformations required to have the notion of a 
- * movable camera, we have the concept of a camera matrix.
- *
- * In OpenGL and any rendering API for that matter, there is no "camera"
- * as we generally think of it. A camera in the graphics world is just a construct
- * that helps us to implement transformations so that we get the result of having a camera
- * and the models in the scene being rendered through the lens of the camera.
- * 
- * The words camera and eye here have no difference other than the spelling.
- * The coordinates that are obtained after multiplying the models with a model matrix
- * are known as the world coordinates. This will be the world space.
- *
- * To get the effect of looking through a camera, we need to know what the coordinates of the models
- * in the world are in terms of the camera. These coordinates are known as the camera or eye coordinates.
- *
- * A camera has a set place in the world. This place is described in terms of the world coordinates
- * and becomes the camera coordinates or eye coordinates.
- * A camera is also pointed in some direction in the world. Ideally, we'd like the camera to point towards the scene
- * which in OpenGL is -z. This becoes the view vector.
- * Finally, we need to specify the orientation of the camera because with just the eye and view vector, we will not
- * have enough information about the orientation in which the scene must be rendered (upside down / right way up)
- *
- * With the above information, we can create a set of orthonormal vectors that define the camera space.
- * Now, we can create a camera matrix where all the models are transformed w.r.t the position and orientation
- * of the camera. This will lead the coordinates of the models being rendered at positions as if we were looking at
- * them through a camera pointing at a specific direction.
- */
-
 #include "utils/native_window.hpp"
 #include "utils/opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
 #include "utils/math/template_math_ops.hpp"
 
 const float vertexData[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+    -0.5f, -0.5f, -0.4f,
+    0.5f, -0.5f, -0.4f,
+    0.0f, 0.5f, -0.4f
 };
 
 const char *vertexSource = 
@@ -47,8 +14,9 @@ const char *vertexSource =
     "layout (location = 0) in vec3 vertexPosition;\n"
     "uniform mat4 modelMatrix;\n"
     "uniform mat4 viewMatrix;\n"
+    "uniform mat4 projectionMatrix;\n "
     "void main() {\n"
-    "   gl_Position = modelMatrix * viewMatrix * vec4(vertexPosition, 1.0);\n"
+    "   gl_Position = modelMatrix * viewMatrix * projectionMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
 const char *fragmentSource = 
@@ -70,6 +38,7 @@ int main(int argc, char **argv)
     GLuint modelMatrixLocation = 0;
     GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
+    GLuint projectionMatrixLocation = 0;
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create native window" << std::endl;
@@ -103,6 +72,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
+    glEnable(GL_DEPTH_TEST);
     glUseProgram(programObj);
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
@@ -113,21 +83,31 @@ int main(int argc, char **argv)
     glEnableVertexAttribArray(0);
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
+    projectionMatrixLocation = glGetUniformLocation(programObj, "projectionMatrix");
 
-    vec3_f upVector = {1.0, 0.0, 0.0};
+    vec3_f upVector = {0.0, 1.0, 0.0};
     vec3_f eyePosition = {0.0, 0.0, -1.0};
     vec3_f viewVector = {0.0, 0.0, 1.0};
-    vec3_f translateVector = {0.0, 0.0, 0.0};
-
+    vec3_f translateVector = {0.0, 0.0, -0.6f};
+    mat4x4_f projectionMatrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+    std::cout << "Projection Matrix : " << projectionMatrix << std::endl;
     mat4x4_f modelMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
     mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
     glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
+    glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+    mat4x4_f mvp = matmul(matmul(modelMatrix, viewMatrix), projectionMatrix);
+    vec4_f pos = {-0.5f, -0.5f, -0.4f, 1.0f};
+    vec4_f finalPos = matmul(mvp, pos);
+    vec4_f perspectiveDivide = finalPos / finalPos[3];
+    std::cout << "MVP: " << mvp << std::endl;
+    std::cout << "Final pos : " << finalPos << std::endl;
+    std::cout << "Final pos after perspective divide : " << perspectiveDivide << std::endl;
 
 	gc.swapBuffers();
     system("pause");

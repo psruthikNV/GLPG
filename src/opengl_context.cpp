@@ -1,5 +1,9 @@
 #include "utils/opengl_context.hpp"
 
+#ifdef _WIN32
+PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+#endif
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBINDBUFFERPROC glBindBuffer;
 PFNGLBUFFERDATAPROC glBufferData;
@@ -216,7 +220,7 @@ bool glContext::createDummyGlContext()
     return true;
 }
 
-/*
+
 bool glContext::createActualGlContext()
 {
     int pixelFormatsIdx[10];
@@ -234,12 +238,12 @@ bool glContext::createActualGlContext()
 		0,
 	};
 
-	if (wglChoosePixelFormatARB(hDc, pixelFormatAttribs, NULL, 5, pixelFormatsIdx, &pfn) == FALSE) {
+	if (wglChoosePixelFormatARB(wglRes.hDc, pixelFormatAttribs, NULL, 5, pixelFormatsIdx, &pfn) == FALSE) {
 		std::cout << "Failed to choose pixel format" << std::endl;
         return false;
 	}
 
-	if (SetPixelFormat(hDc, pixelFormatsIdx[0], NULL) == FALSE) {
+	if (SetPixelFormat(wglRes.hDc, pixelFormatsIdx[0], NULL) == FALSE) {
 		std::cout << "Failed to set pixel format" << std::endl;
         return false;
     }
@@ -252,25 +256,38 @@ bool glContext::createActualGlContext()
 		0
 	};
 
-	hGlrc = wglCreateContextAttribsARB(hDc, 0, contextAttrib);
+	wglRes.hGlrc = wglCreateContextAttribsARB(wglRes.hDc, 0, contextAttrib);
 	wglMakeCurrent(NULL, NULL);
-	wglDeleteContext(temp_hGlrc);
-	wglMakeCurrent(hDc, hGlrc);
+	wglDeleteContext(wglRes.tempHglrc);
+	wglMakeCurrent(wglRes.hDc, wglRes.hGlrc);
 
-    return false;
+    return true;
 }
-*/
+
+bool glContext::loadWglFunctionPointers()
+{
+    wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)loadGLFunction("wglChoosePixelFormatARB");
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)loadGLFunction("wglCreateContextAttribsARB");
+
+    if (!wglChoosePixelFormatARB || !wglCreateContextAttribsARB) {
+        std::cout << "Failed to load required WGL Functions" << std::endl;
+        return false;
+    } else {
+        return true;
+    }
+
+}
 bool glContext::initializeWglBackend(nativeWindow &window)
 {
     wglRes.hDc = window.getNativeHandle();
     if (!createDummyGlContext()) {
         std::cout << "Failed to create WGL Context" << std::endl;
         return false;
-    }/*
-    else if (!createActualGlContext()) {
+    }
+    else if (!loadWglFunctionPointers() || !createActualGlContext()) {
         std::cout << "Failed to create actual WGL Contxt" << std::endl;
         return false;
-    }*/
+    }
 
     return true;
 }

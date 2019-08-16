@@ -13,6 +13,11 @@
 #include <gl\wglext.h>
 #endif
 
+
+#ifdef _WIN32
+extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+#endif
 extern PFNGLGENBUFFERSPROC glGenBuffers;
 extern PFNGLBINDBUFFERPROC glBindBuffer;
 extern PFNGLBUFFERDATAPROC glBufferData;
@@ -71,6 +76,7 @@ class glContext
         bool initializeWglBackend(nativeWindow &window);
         bool createDummyGlContext();
         bool createActualGlContext();
+        bool loadWglFunctionPointers();
         #endif
         void *loadGLFunction(const char *name);
         void initializeGLFunctionPointers();

@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <assert.h>
-
+#include <math.h>
 template <std::size_t L, typename T>
 class vec
 {

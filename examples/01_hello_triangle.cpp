@@ -1,9 +1,12 @@
-#include "utils/native_window.hpp"
-#include "utils/opengl_context.hpp"
+#include "native_window.hpp"
+#include "opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
+#include "utils/misc_utils.hpp"
 #ifdef __linux__
 #include <unistd.h>
 #endif
+
+using namespace glpg;
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -79,10 +82,6 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
     gc.swapBuffers();
-#ifdef _WIN32
-    system("pause");
-#elif defined __linux__
-    sleep(5);
-#endif
+    glpg::pause();
     return 0;
 }

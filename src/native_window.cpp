@@ -1,5 +1,6 @@
-#include "utils/native_window.hpp"
+#include "native_window.hpp"
 
+using namespace glpg;
 nativeWindow::nativeWindow(uint32_t w, uint32_t h)
 {
     windowWidth = w;

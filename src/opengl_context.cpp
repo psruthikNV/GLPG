@@ -1,4 +1,4 @@
-#include "utils/opengl_context.hpp"
+#include "opengl_context.hpp"
 
 #ifdef _WIN32
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
@@ -31,6 +31,7 @@ PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
+using namespace glpg;
 void* glContext::loadGLFunction(const char *name) {
 #ifdef _WIN32
     void *f = (void *)wglGetProcAddress(name);

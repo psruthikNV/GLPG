@@ -25,10 +25,12 @@
 
 #include <random>
 
-#include "utils/native_window.hpp"
-#include "utils/opengl_context.hpp"
+#include "native_window.hpp"
+#include "opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
-#include "utils/math/template_math_ops.hpp"
+#include "math/glpg_math.hpp"
+#include "utils/misc_utils.hpp"
+using namespace glpg;
 
 // Number of triangles to be drawn
 int g_numTriangles = 3;
@@ -131,5 +133,5 @@ int main(int argc, char **argv)
     }
 
     gc.swapBuffers();
-    system("pause");
+    glpg::pause();
 }

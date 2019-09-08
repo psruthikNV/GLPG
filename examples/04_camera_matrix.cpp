@@ -31,10 +31,13 @@
  * them through a camera pointing at a specific direction.
  */
 
-#include "utils/native_window.hpp"
-#include "utils/opengl_context.hpp"
+#include "native_window.hpp"
+#include "opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
-#include "utils/math/template_math_ops.hpp"
+#include "math/glpg_math.hpp"
+#include "utils/misc_utils.hpp"
+
+using namespace glpg;
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -130,5 +133,6 @@ int main(int argc, char **argv)
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	gc.swapBuffers();
-    system("pause");
+
+    glpg::pause();
 }

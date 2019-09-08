@@ -1,12 +1,15 @@
-#include "utils/native_window.hpp"
-#include "utils/opengl_context.hpp"
+#include "native_window.hpp"
+#include "opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
-#include "utils/math/template_math_ops.hpp"
+#include "math/glpg_math.hpp"
+#include "utils/misc_utils.hpp"
+
+using namespace glpg;
 
 const float vertexData[] = {
-    -0.5f, -0.5f, -0.4f,
-    0.5f, -0.5f, -0.4f,
-    0.0f, 0.5f, -0.4f
+    -0.5f, -0.5f, -0.2f,
+    0.5f, -0.5f, -0.2f,
+    0.0f, 0.5f, -0.2f
 };
 
 const char *vertexSource = 
@@ -16,7 +19,8 @@ const char *vertexSource =
     "uniform mat4 viewMatrix;\n"
     "uniform mat4 projectionMatrix;\n "
     "void main() {\n"
-    "   gl_Position = modelMatrix * viewMatrix * projectionMatrix * vec4(vertexPosition, 1.0);\n"
+    "   gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
+    "   //gl_Position = modelMatrix * viewMatrix * projectionMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
 const char *fragmentSource = 
@@ -86,10 +90,10 @@ int main(int argc, char **argv)
     projectionMatrixLocation = glGetUniformLocation(programObj, "projectionMatrix");
 
     vec3_f upVector = {0.0, 1.0, 0.0};
-    vec3_f eyePosition = {0.0, 0.0, -1.0};
-    vec3_f viewVector = {0.0, 0.0, 1.0};
+    vec3_f eyePosition = {0.0, 0.0, 1.0};
+    vec3_f viewVector = {0.0, 0.0, -1.0};
     vec3_f translateVector = {0.0, 0.0, -0.6f};
-    mat4x4_f projectionMatrix = frustum(-1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 100.0f);
+    mat4x4_f projectionMatrix = frustum(-100.0f, 100.0f, -100.0f, 100.0f, 0.1f, 100.0f);
     std::cout << "Projection Matrix : " << projectionMatrix << std::endl;
     mat4x4_f modelMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
@@ -101,14 +105,7 @@ int main(int argc, char **argv)
     glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
     glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
 	glDrawArrays(GL_TRIANGLES, 0, 3);
-    mat4x4_f mvp = matmul(matmul(modelMatrix, viewMatrix), projectionMatrix);
-    vec4_f pos = {-0.5f, -0.5f, -0.4f, 1.0f};
-    vec4_f finalPos = matmul(mvp, pos);
-    vec4_f perspectiveDivide = finalPos / finalPos[3];
-    std::cout << "MVP: " << mvp << std::endl;
-    std::cout << "Final pos : " << finalPos << std::endl;
-    std::cout << "Final pos after perspective divide : " << perspectiveDivide << std::endl;
 
 	gc.swapBuffers();
-    system("pause");
+    glpg::pause();
 }

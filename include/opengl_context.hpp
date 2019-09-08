@@ -45,47 +45,50 @@ extern PFNGLUNIFORM4FPROC glUniform4f;
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
-class glContext
-{
-    private:
-        struct glContextConfig
-        {
-            uint32_t glContextMinVersion;
-            uint32_t glContextMajorVersion;
-        };
-        glContextConfig glConfig;
-        #ifdef __linux__
-        struct eglResources
-        {
-            EGLDisplay display;
-            EGLConfig config;
-            EGLContext context;
-            EGLSurface surface;
-        };
-        eglResources eglRes;
-        bool initializeEglBackend(nativeWindow &window);
-        #elif defined _WIN32
-        struct wglResources
-        {
-            HGLRC tempHglrc;
-            HGLRC hGlrc;
-            HDC hDc;
-            int pixelFormat;
-        };
-        wglResources wglRes;
-        bool initializeWglBackend(nativeWindow &window);
-        bool createDummyGlContext();
-        bool createActualGlContext();
-        bool loadWglFunctionPointers();
-        #endif
-        void *loadGLFunction(const char *name);
-        void initializeGLFunctionPointers();
+namespace glpg {
 
-    public:
-        glContext();
-        glContext(nativeWindow &window);
-        glContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion);
-        bool initializeGlContext(nativeWindow &window, uint32_t majorVersion,
-                                 uint32_t minorVersion);
-        bool swapBuffers();
-};
+    class glContext
+    {
+        private:
+            struct glContextConfig
+            {
+                uint32_t glContextMinVersion;
+                uint32_t glContextMajorVersion;
+            };
+            glContextConfig glConfig;
+#ifdef __linux__
+            struct eglResources
+            {
+                EGLDisplay display;
+                EGLConfig config;
+                EGLContext context;
+                EGLSurface surface;
+            };
+            eglResources eglRes;
+            bool initializeEglBackend(nativeWindow &window);
+#elif defined _WIN32
+            struct wglResources
+            {
+                HGLRC tempHglrc;
+                HGLRC hGlrc;
+                HDC hDc;
+                int pixelFormat;
+            };
+            wglResources wglRes;
+            bool initializeWglBackend(nativeWindow &window);
+            bool createDummyGlContext();
+            bool createActualGlContext();
+            bool loadWglFunctionPointers();
+#endif
+            void *loadGLFunction(const char *name);
+            void initializeGLFunctionPointers();
+
+        public:
+            glContext();
+            glContext(nativeWindow &window);
+            glContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion);
+            bool initializeGlContext(nativeWindow &window, uint32_t majorVersion,
+                    uint32_t minorVersion);
+            bool swapBuffers();
+    };
+}

@@ -1,7 +1,9 @@
-#include "utils/native_window.hpp"
-#include "utils/opengl_context.hpp"
+#include "native_window.hpp"
+#include "opengl_context.hpp"
 #include "utils/opengl_shader_utils.hpp"
-#include "utils/math/template_math_ops.hpp"
+#include "math/glpg_math.hpp"
+#include "utils/misc_utils.hpp"
+using namespace glpg;
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -88,10 +90,6 @@ int main ()
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     gc.swapBuffers();
-#ifdef _WIN32
-    system("pause");
-#elif defined __linux__
-    sleep(5);
-#endif
+    glpg::pause();
     return 0;
 }

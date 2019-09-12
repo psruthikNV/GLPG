@@ -11,16 +11,29 @@ namespace {
             std::random_device rd;
             std::mt19937 gen;
             std::uniform_real_distribution<float> dist;
+
+            void generateTestVertices();
         protected:
-        mockTest() {
-            gen = std::mt19937(rd());
-            dist = std::uniform_real_distribution<float>(-100, 100);
-            std::cout << "TESTING HAS BEGUN\n";
-        }
+            mockTest() {
+                gen = std::mt19937(rd());
+                dist = std::uniform_real_distribution<float>(-100, 100);
+                generateTestVertices();
+            }
         public:
-        glpg::vec3_f generateRandomVec3_f();
-        glm::vec3 generateRandomGlmVec3();
+            glpg::vec3_f generateRandomVec3_f();
+            glm::vec3 generateRandomGlmVec3();
+            glpg::vec3_f glpgVec[2];
+            glm::vec3 glmVec[2];
     };
+
+    void mockTest::generateTestVertices()
+    {
+        for (uint32_t i = 0; i < 2; i++) {
+            for (uint32_t j = 0; j < 3; j++) {
+                glmVec[i][j] = glpgVec[i][j] = dist(gen);
+            }
+        }
+    }
 
     glpg::vec3_f mockTest::generateRandomVec3_f()
     {
@@ -44,25 +57,15 @@ namespace {
 
     TEST_F(mockTest, vectorAdditionTest)
     {
-        glm::vec3 glmVec[2], glm_temp;
-        glpg::vec3_f vec[2], vec_temp;
-
-        for (uint32_t i = 0; i < 2; i++) {
-            glmVec[i] = generateRandomGlmVec3();
-            vec[i] = generateRandomVec3_f();
-        }
+        glm::vec3 glm_temp;
+        glpg::vec3_f vec_temp;
 
         glm_temp = glmVec[0] + glmVec[1];
-        vec_temp = vec[0] + vec[1];
+        vec_temp = glpgVec[0] + glpgVec[1];
 
         for (uint32_t i = 0; i < 3; i++) {
             ASSERT_EQ(glm_temp[i], vec_temp[i]);
         }
-    }
-
-    TEST_F(mockTest, dummyTest)
-    {
-        std::cout << "PROPER TESTING HAS BEGUN\n";
     }
 }
 

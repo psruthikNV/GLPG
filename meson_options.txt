@@ -1,1 +1,3 @@
-option('buildTests', type : 'boolean', value : false)
+option('enable_tests', type : 'boolean', value : false, description : 'Flag to build GLPG unit tests')
+
+option('glm_include_dir', type : 'string', description : 'Path to GLM headers')

@@ -3,7 +3,7 @@ project('glpg', 'cpp',
 
 glpg_include_path = include_directories('./include')
 glpg_compiler = meson.get_compiler('cpp')
-buildTests = get_option('buildTests')
+buildTests = get_option('enable_tests')
 
 if host_machine.system() == 'linux'
     lib_xcb = glpg_compiler.find_library('xcb')

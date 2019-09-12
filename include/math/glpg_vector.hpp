@@ -30,7 +30,7 @@ namespace glpg {
 
                 /* Functions */
                 vec normalize();
-                std::size_t length();
+                T length();
                 vec<3, T> cross(vec<3, T>&);
         };
 
@@ -119,15 +119,15 @@ namespace glpg {
         }
 
     template <std::size_t L, typename T>
-        std::size_t vec<L, T>::length()
+        T vec<L, T>::length()
         {
-            std::size_t temp = 0;
+            T temp = 0;
 
             for (std::size_t i = 0; i < L; i++) {
                 temp += vals[i] * vals[i];
             }
 
-            return static_cast<std::size_t>(sqrt(temp));
+            return static_cast<T>(sqrt(temp));
         }
 
     template <std::size_t L, typename T>

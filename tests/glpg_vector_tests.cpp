@@ -35,37 +35,64 @@ namespace {
         }
     }
 
-    glpg::vec3_f mockTest::generateRandomVec3_f()
-    {
-        glpg::vec3_f tempVec;
-
-        for (uint32_t i = 0; i < 3; i++) {
-            tempVec[i] = dist(gen);
-        }
-        return tempVec;
-    }
-
-    glm::vec3 mockTest::generateRandomGlmVec3() 
-    {
-        glm::vec3 tempVec;
-
-        for (uint32_t i = 0; i < 3; i++) {
-            tempVec[i] = dist(gen);
-        }
-        return tempVec;
-    }
-
     TEST_F(mockTest, vectorAdditionTest)
     {
         glm::vec3 glm_temp;
-        glpg::vec3_f vec_temp;
+        glpg::vec3_f glpg_temp;
 
         glm_temp = glmVec[0] + glmVec[1];
-        vec_temp = glpgVec[0] + glpgVec[1];
+        glpg_temp = glpgVec[0] + glpgVec[1];
 
         for (uint32_t i = 0; i < 3; i++) {
-            ASSERT_EQ(glm_temp[i], vec_temp[i]);
+            ASSERT_EQ(glm_temp[i], glpg_temp[i]);
         }
+    }
+
+    TEST_F(mockTest, vectorSubtractionTest)
+    {
+        glm::vec3 glm_temp;
+        glpg::vec3_f glpg_temp;
+
+        glm_temp = glmVec[0] - glmVec[1];
+        glpg_temp = glpgVec[0] - glpgVec[1];
+
+        for (uint32_t i = 0; i < 3; i++) {
+            ASSERT_EQ(glm_temp[i], glpg_temp[i]);
+        }
+    }
+
+    TEST_F(mockTest, vectorCrossProductTest)
+    {
+        glm::vec3 glm_temp;
+        glpg::vec3_f glpg_temp;
+
+        glm_temp = glm::cross(glmVec[0], glmVec[1]);
+        glpg_temp = glpgVec[0].cross(glpgVec[1]);
+
+        for (uint32_t i = 0; i < 3; i++) {
+            ASSERT_EQ(glm_temp[i], glpg_temp[i]);
+        }
+    }
+
+    TEST_F(mockTest, vectorNormalizeTest)
+    {
+        glm::vec3 glm_temp;
+        glpg::vec3_f glpg_temp;
+
+        glm_temp = glm::normalize(glmVec[0]);
+        glpg_temp = glpgVec[0].normalize();
+
+        for (uint32_t i = 0; i < 3; i++) {
+            ASSERT_EQ(glm_temp[i], glpg_temp[i]);
+        }
+    }
+
+    TEST_F(mockTest, vectorLengthTest)
+    {
+        float glm_length = glm::length(glmVec[0]);
+        float glpg_length = glpgVec[0].length();
+
+        ASSERT_EQ(glm_length, glpg_length);
     }
 }
 

@@ -73,7 +73,8 @@ namespace glpg {
 
             for (auto val : vals) {
                 values[i][j++] = val;
-                i = ((j == C) && !(j = 0)) ? ++i : i;
+                //TODO: Just why?
+                i = (((j == C) && !(j = 0)) ? ++i : i);
             }   
         }
 
@@ -81,8 +82,8 @@ namespace glpg {
         std::ostream& operator<<(std::ostream& os, matrix<R, C, T>& m)
         {
             os << std::endl;
-            for (int i = 0; i < R; i++) {
-                for (int j = 0; j < C; j++)
+            for (std::size_t i = 0; i < R; i++) {
+                for (std::size_t j = 0; j < C; j++)
                     os << m.values[i][j] << " ";
                 os << std::endl;
             }

@@ -6,10 +6,11 @@
 
 using namespace glpg;
 
+
 const float vertexData[] = {
-    -0.5f, -0.5f, -0.2f,
-    0.5f, -0.5f, -0.2f,
-    0.0f, 0.5f, -0.2f
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
 };
 
 const char *vertexSource = 
@@ -20,7 +21,6 @@ const char *vertexSource =
     "uniform mat4 projectionMatrix;\n "
     "void main() {\n"
     "   gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
-    "   //gl_Position = modelMatrix * viewMatrix * projectionMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
 const char *fragmentSource = 
@@ -88,24 +88,29 @@ int main(int argc, char **argv)
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
     projectionMatrixLocation = glGetUniformLocation(programObj, "projectionMatrix");
-
-    vec3_f upVector = {0.0, 1.0, 0.0};
-    vec3_f eyePosition = {0.0, 0.0, 1.0};
-    vec3_f viewVector = {0.0, 0.0, -1.0};
-    vec3_f translateVector = {0.0, 0.0, -0.6f};
-    mat4x4_f projectionMatrix = frustum(-100.0f, 100.0f, -100.0f, 100.0f, 0.1f, 100.0f);
-    std::cout << "Projection Matrix : " << projectionMatrix << std::endl;
+    float zPos = 0.0f;
+    vec3_f eyePosition;
+    vec3_f upVector = {0.0f, 1.0f, 0.0f};
+    vec3_f viewVector = {0.0f, 0.0f, -1.0f};
+    vec3_f translateVector = {0.0f, 0.0f, 0.0f};
+    mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     mat4x4_f modelMatrix;
+    mat4x4_f viewMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
-    mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    while (1) {
+        eyePosition = {0.0f, 0.0f, zPos};
+        viewMatrix = lookAt(eyePosition, viewVector, upVector);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
-    glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
-    glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
+        glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
 
-	gc.swapBuffers();
-    glpg::pause();
+	    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	    gc.swapBuffers();
+        Sleep(16.6);
+        zPos += 0.1f;
+    }
 }

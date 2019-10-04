@@ -51,7 +51,7 @@ const char *vertexSource =
     "uniform mat4 modelMatrix;\n"
     "uniform mat4 viewMatrix;\n"
     "void main() {\n"
-    "   gl_Position = modelMatrix * viewMatrix * vec4(vertexPosition, 1.0);\n"
+    "   gl_Position = viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
 const char *fragmentSource = 
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
 
-    vec3_f upVector = {1.0, 0.0, 0.0};
+    vec3_f upVector = {0.0, 1.0, 0.0};
     vec3_f eyePosition = {0.0, 0.0, -1.0};
     vec3_f viewVector = {0.0, 0.0, 1.0};
     vec3_f translateVector = {0.0, 0.0, 0.0};

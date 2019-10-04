@@ -2,6 +2,7 @@
 #include "glpg_vector.hpp"
 #include "glpg_matrix.hpp"
 #include <assert.h>
+#include <cmath>
 
 namespace glpg {
 
@@ -74,5 +75,18 @@ namespace glpg {
 
             return rv;
 
+        }
+    //TODO: Understand the below projection matrix. How does it differ from 
+    //the frustum transformation.
+    template <typename T>
+        matrix<4, 4, T> gluPerspective(T fovy, T aspect, T zNear, T zFar)
+        {
+            T f = 1.0f / tan(fovy / 2);
+            
+            matrix<4, 4, T> rv = {f / aspect, 0, 0, 0,
+                                  0, f, 0, 0,
+                                  0, 0, (zFar + zNear) / (zNear - zFar), (2 * zFar * zNear)/ (zNear - zFar),
+                                  0, 0, -1, 0};
+            return rv;
         }
 }

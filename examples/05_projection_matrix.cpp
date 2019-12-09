@@ -8,9 +8,9 @@ using namespace glpg;
 
 
 const float vertexData[] = {
-    -0.5f, -0.5f, 0.0f,
-    0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+    -0.5F, -0.5F, 0.0F,
+    0.5F, -0.5F, 0.0F,
+    0.0F, 0.5F, 0.0F
 };
 
 const char *vertexSource = 
@@ -32,8 +32,11 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
+    // GLPG resources
     nativeWindow win(800, 600);
     glContext gc;
+
+    // GL resources
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
@@ -43,6 +46,16 @@ int main(int argc, char **argv)
     GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
+
+    // Transformation resources
+    vec3_f eyePosition;
+    vec3_f upVector = {0.0F, 1.0F, 0.0F};
+    vec3_f viewVector = {0.0F, 0.0F, 3.0F};
+    vec3_f translateVector = {0.0F, 0.0F, 0.0F};
+    mat4x4_f projectionMatrix = gluPerspective(45.0F, 800.0F / 600.0F, 0.1F, 100.0F);
+    mat4x4_f modelMatrix;
+    mat4x4_f viewMatrix;
+
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create native window" << std::endl;
@@ -85,21 +98,16 @@ int main(int argc, char **argv)
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void *)0);
     glEnableVertexAttribArray(0);
+
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
     projectionMatrixLocation = glGetUniformLocation(programObj, "projectionMatrix");
-    float zPos = 0.0f;
-    vec3_f eyePosition;
-    vec3_f upVector = {0.0f, 1.0f, 0.0f};
-    vec3_f viewVector = {0.0f, 0.0f, -1.0f};
-    vec3_f translateVector = {0.0f, 0.0f, 0.0f};
-    mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
-    mat4x4_f modelMatrix;
-    mat4x4_f viewMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
+
+    // Begin the rendering loop
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while (1) {
-        eyePosition = {0.0f, 0.0f, zPos};
+        eyePosition = {0.0F, 0.0F, 3.0F};
         viewMatrix = lookAt(eyePosition, viewVector, upVector);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -110,7 +118,5 @@ int main(int argc, char **argv)
 	    glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	    gc.swapBuffers();
-        sleep(16.6);
-        zPos += 0.1f;
     }
 }

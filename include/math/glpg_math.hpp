@@ -44,10 +44,38 @@ namespace glpg {
             return (matmul(m, rv));
         }
 
+    /*
+     * Look-At matrix :
+     *
+     * The Look-At matrix takes in three glpg::vec3 parameters.
+     *
+     * 1. Eye - The position of the camera/eye in world coordinates
+     * 2. Center / View vector - The vector describing the direction in which
+     *                           the camera/eye is looking at
+     * 3. Up - The vector describing the up direction of the camera/eye
+     *
+     * The purpose of the Look-At matrix is to provide a transformation matrix that is the inverse
+     * of the Eye and Center parameters. This is because in CG there is no actual Camera object
+     * and there is only a construct of a camera. Instead of placing the camera in the world and
+     * getting its viewpoint we keep the camera stationary and move the world around it.
+     *
+     * For the above to happen, we need to describe the camera's location and a coordinate system
+     * specific to the camera.
+     *
+     * This coordinate system is setup by the Look-At matrix.
+     *
+     * We take the view vector which originates from the eye position and perform a cross with the Up vector.
+     * This will give us a new vector which is perpendicular to both the Up and View vector.
+     *
+     * This new vector will represent the second orthogonal axis of the camera coordinate system (the first being
+     * the view vector).
+     *
+     * Now the cross product between the view vector and the temporary vector is performed to get the vector
+     * representing the final axis of the camera coordinate system
+     */
     template <typename T>
         matrix<4, 4, T> lookAt(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
         {
-
             vec<3, T> w = (center - eye).normalize();
             vec<3, T> temp = up.cross(w);
             vec<3, T> u = temp.normalize();

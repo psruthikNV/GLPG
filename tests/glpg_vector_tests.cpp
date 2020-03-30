@@ -4,6 +4,8 @@
 #include "gtest/gtest.h"
 #include "math/glpg_math.hpp"
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 namespace {
 
     class mockTest : public ::testing::Test {

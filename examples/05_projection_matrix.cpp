@@ -98,14 +98,7 @@ int main(int argc, char **argv)
     GLuint projectionMatrixLocation = 0;
 
     // Transformation resources
-    vec3_f eyePosition;
-    vec3_f upVector = {0.0F, 1.0F, 0.0F};
-    vec3_f viewVector = {0.0F, 0.0F, 3.0F};
-    vec3_f translateVector = {0.0F, 0.0F, 0.0F};
-    mat4x4_f projectionMatrix = gluPerspective(45.0F, 800.0F / 600.0F, 0.1F, 100.0F);
-    mat4x4_f modelMatrix;
-    mat4x4_f viewMatrix;
-
+    
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create native window" << std::endl;

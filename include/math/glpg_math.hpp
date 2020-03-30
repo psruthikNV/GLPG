@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <cmath>
 
+constexpr float PI_F = 3.14159265358979F;
+
 namespace glpg {
 
     template <std::size_t R, std::size_t C, std::size_t X, typename T>
@@ -46,7 +48,7 @@ namespace glpg {
         matrix<4, 4, T> lookAt(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
         {
 
-            vec<3, T> w = center.normalize();
+            vec<3, T> w = (center - eye).normalize();
             vec<3, T> temp = up.cross(w);
             vec<3, T> u = temp.normalize();
             vec<3, T> v = w.cross(u);
@@ -63,12 +65,12 @@ namespace glpg {
         {
             assert(n != 0);
 
-            T A = (r + l) / (r - l);
-            T B = (t + b) / (t - b);
-            T C = -((f + n) / (f - n));
-            T D = -((2*f*n)/ (f - n));
+           T A = (r + l) / (r - l);
+           T B = (t + b) / (t - b);
+           T C = (f + n) / (n - f);
+           T D = (2 * f * n) / (n - f);
 
-            matrix<4, 4, T> rv = {(2 * n)/ (r - l), 0, A, 0,
+            matrix<4, 4, T> rv = {(2 * n) / (r - l), 0, A, 0,
                 0, (2 * n) / (t - b), B, 0,
                 0, 0, C, D,
                 0, 0, -1, 0};
@@ -76,12 +78,11 @@ namespace glpg {
             return rv;
 
         }
-    //TODO: Understand the below projection matrix. How does it differ from 
-    //the frustum transformation.
+    //TODO - Understand the relation between gluPerspective and glFrustum
     template <typename T>
         matrix<4, 4, T> gluPerspective(T fovy, T aspect, T zNear, T zFar)
         {
-            T f = 1.0f / tan(fovy / 2);
+            T f = 1.0f / tan(((fovy * PI_F) / 180) / 2);
             
             matrix<4, 4, T> rv = {f / aspect, 0, 0, 0,
                                   0, f, 0, 0,

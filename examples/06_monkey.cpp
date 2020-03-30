@@ -94,6 +94,15 @@ int main(int argc, char **argv)
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
 
+    std::vector<glpg::VertexIN> monkeyVertices;
+
+    if (!glpg::LoadObjFile("C:\\code\\d3d11-playground\\assets\\models\\monkey_2.obj", monkeyVertices)) {
+        std::cout << "Failed to load Vertices\n";
+        return -1;
+    } else {
+        std::cout << "Loaded Monkey Vertices\n";
+    }
+
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create native window" << std::endl;
         return -1;
@@ -131,8 +140,8 @@ int main(int argc, char **argv)
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (void *)0);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glpg::VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void *)0);
     glEnableVertexAttribArray(0);
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
@@ -150,13 +159,13 @@ int main(int argc, char **argv)
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while (1) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1; i++) {
             modelMatrix.identity();
             modelMatrix = translate(modelMatrix, trianglePositions[i]);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, monkeyVertices.size());
         }
 	    gc.swapBuffers();
         glpg::pause();

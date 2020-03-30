@@ -1,5 +1,6 @@
 project('glpg', 'cpp',
-        version : '0.0.1')
+        version : '0.0.1',
+        default_options : '-std=c++17')
 
 glpg_include_path = include_directories('./include')
 glpg_compiler = meson.get_compiler('cpp')

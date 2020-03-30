@@ -22,3 +22,18 @@ executable('05_projection_matrix', '05_projection_matrix.cpp',
            include_directories : glpg_include_path,
            dependencies : deps,
            link_with : libglpg)
+
+executable('06_monkey', '06_monkey.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)
+
+executable('07_monkey_circle', '07_monkey_circle.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)
+
+executable('08_monkey_circle', '08_monkey_circle.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)

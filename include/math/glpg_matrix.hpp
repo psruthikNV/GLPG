@@ -33,6 +33,15 @@ namespace glpg {
                 friend std::ostream& operator<<(std::ostream& os, const matrix& m);
                 std::array<T, C> operator[](std::size_t idx) const;
                 std::array<T, C>& operator[](std::size_t idx);
+                void identity() {
+                    for (std::size_t i = 0; i < rows; i++) {
+                        for (std::size_t j = 0; j < cols; j++) {
+                            values[i][j] = T(0);
+                        }
+                    }
+                    for (std::size_t i = 0; i < rows; i++)
+                        values[i][i] = T(1);
+                }
 
                 /* Getters. Useless untill the constexpr members are made private */
                 inline constexpr std::size_t numRows() const;

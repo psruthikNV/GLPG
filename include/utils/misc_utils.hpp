@@ -23,7 +23,13 @@ struct VertexIN {
     float color[3];
 };
 
-bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx)
+struct FaceIN{
+    std::vector<uint32_t> vertexIndices;
+    uint32_t textureIndices[4];
+    uint32_t normalIndices[4];
+};
+
+bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx, std::vector<FaceIN>& v_face)
 {
     if (filePath == nullptr) {
         std::cerr << "No filepath specified";
@@ -32,6 +38,7 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx)
 
     std::fstream objFileStream(filePath, std::ios::in);
     if (objFileStream.is_open()) {
+        uint32_t faceId = 0U;
         for (std::string line; std::getline(objFileStream, line);) {
             std::istringstream in(line);
             std::string type;
@@ -51,6 +58,23 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx)
                 //tempVertex.color = { 0.0F, 0.0F, 1.0F };
                 v_vtx.push_back(std::move(tempVertex));
                 //std::cout << "VTX: " << x << " " << y << " " << z <<"\n";
+            } else if (type == "f") {
+                char slash; // K, this shit needs to be removed.
+                FaceIN tempFace;
+                uint32_t i = 0U;
+                uint32_t temp;
+                while (!in.eof()) {
+                //for (uint32_t i = 0U; i < 4U; i++) {
+                    in >> temp;
+                    tempFace.vertexIndices.push_back(temp - 1);
+                    in >> slash;
+                    in >> tempFace.textureIndices[i];
+                    in >> slash;
+                    in >> tempFace.normalIndices[i];
+                    ++i;
+                //}
+                }
+                v_face.push_back(std::move(tempFace));
             }
         }
     } else {

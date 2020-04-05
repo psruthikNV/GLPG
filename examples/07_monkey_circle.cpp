@@ -112,8 +112,9 @@ int main(int argc, char **argv)
     GLuint projectionMatrixLocation = 0;
 
     std::vector<glpg::VertexIN> monkeyVertices;
+    std::vector<glpg::FaceIN> faceStuff;
 
-    if (!glpg::LoadObjFile("C:\\code\\d3d11-playground\\assets\\models\\monkey_2.obj", monkeyVertices)) {
+    if (!glpg::LoadObjFile("E:\\Code\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -192,7 +193,6 @@ int main(int argc, char **argv)
             Sleep(16.6);
         }
 	    gc.swapBuffers();
-        //glpg::pause();
     }
     glpg::pause();
 }

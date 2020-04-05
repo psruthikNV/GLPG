@@ -70,18 +70,41 @@ const float vertexData[] = {
 const char *vertexSource = 
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
+    "flat out int glpg_vertexID;\n"
     "uniform mat4 modelMatrix;\n"
     "uniform mat4 viewMatrix;\n"
     "uniform mat4 projectionMatrix;\n "
     "void main() {\n"
     "   gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
+    "   glpg_vertexID = gl_VertexID;\n"
     "}\0";
 
 const char *fragmentSource = 
     "#version 450 core\n"
     "out vec4 fragColor;\n"
+    "flat in int glpg_vertexID;\n"
     "void main() {\n"
-    "   fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "switch (glpg_vertexID) {\n"
+    "   case 0:\n"
+    "       fragColor = vec4(0.0, 1.0, 0.0, 1.0); break;\n"
+    "   case 1:\n"
+    "       fragColor = vec4(1.0, 0.0, 0.0, 1.0);break;\n"
+    "   case 2:\n"
+    "       fragColor = vec4(0.0, 0.0, 1.0, 1.0);break;\n"
+    "   case 3:\n"
+    "       fragColor = vec4(0.5, 0.0, 0.0, 1.0);break;\n"
+    "   case 4:\n"
+    "       fragColor = vec4(0.0, 0.5, 0.0, 1.0);break;\n"
+    "   case 5:\n"
+    "       fragColor = vec4(0.0, 0.0, 0.5, 1.0);break;\n"
+    "   case 6:\n"
+    "       fragColor = vec4(0.5, 0.5, 0.5, 1.0);break;\n"
+    "   case 7:\n"
+    "       fragColor = vec4(0.0, 0.0, 0.0, 1.0);break;\n"
+    "   //default:\n"
+    "       //fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "}\n"
+    "   //fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
     "}\0";
 
 vec3_f getEyePosition()
@@ -116,8 +139,8 @@ int main(int argc, char **argv)
     GLuint projectionMatrixLocation = 0;
 
     std::vector<glpg::VertexIN> monkeyVertices;
-
-    if (!glpg::LoadObjFile("C:\\code\\d3d11-playground\\assets\\models\\monkey_2.obj", monkeyVertices)) {
+    std::vector<glpg::FaceIN> faceStuff;
+    if (!glpg::LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -157,9 +180,12 @@ int main(int argc, char **argv)
     }
 
     glUseProgram(programObj);
+    
     glEnable(GL_DEPTH_TEST);
+    /*
     glEnable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
+    */
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -198,18 +224,14 @@ int main(int argc, char **argv)
             glm::mat4 view = glm::mat4(1.0);
             QueryPerformanceCounter(&timer);
 
-            float camX = sin(timer.QuadPart / 1.2F) * radius;
-            float camZ = cos(timer.QuadPart / 1.2F) * radius;
+            float camX = sin(timer.QuadPart * 0.0000001F) * radius;
+            float camZ = cos(timer.QuadPart * 0.0000001F) * radius;
             view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-            //viewMatrix = lookAt(getEyePosition(), viewVector, upVector);
-            //glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &view[0][0]);
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, monkeyVertices.size());
-            //Sleep(16.6);
+            glDrawArrays(GL_TRIANGLES, 0, monkeyVertices.size());
         }
 	    gc.swapBuffers();
-        //glpg::pause();
     }
     glpg::pause();
 }

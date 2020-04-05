@@ -37,3 +37,13 @@ executable('08_monkey_circle', '08_monkey_circle.cpp',
            include_directories : glpg_include_path,
            dependencies : deps,
            link_with : libglpg)
+
+executable('09_monkey_indexed', '09_monkey_indexed.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)
+
+executable('10_threaded_update', '10_threaded_update.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)

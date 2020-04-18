@@ -1,8 +1,8 @@
-#include "native_window.hpp"
-#include "opengl_context.hpp"
-#include "utils/opengl_shader_utils.hpp"
-#include "math/glpg_math.hpp"
-#include "utils/misc_utils.hpp"
+#include "GLPGWindow.hpp"
+#include "GLPGContext.hpp"
+#include "utils/GLPGShaderUtils.hpp"
+#include "math/GLPGMath.hpp"
+#include "utils/GLPGUtils.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         indices[i] -= 1;
     }
 
-    if (!glpg::LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj", monkeyVertices, faceStuff)) {
+    if (!glpg::LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
     //if (!glpg::LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
@@ -196,8 +196,8 @@ int main(int argc, char **argv)
             glm::mat4 view = glm::mat4(1.0);
             QueryPerformanceCounter(&timer);
 
-            float camX = sin(timer.QuadPart * 0.0000001F) * radius;
-            float camZ = cos(timer.QuadPart * 0.0000001F) * radius;
+            float camX = sin(timer.QuadPart * 0.00000001F) * radius;
+            float camZ = cos(timer.QuadPart * 0.00000001F) * radius;
             view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &view[0][0]);
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());

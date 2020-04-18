@@ -25,11 +25,11 @@
 
 #include <random>
 
-#include "native_window.hpp"
-#include "opengl_context.hpp"
-#include "utils/opengl_shader_utils.hpp"
-#include "math/glpg_math.hpp"
-#include "utils/misc_utils.hpp"
+#include "GLPGWindow.hpp"
+#include "GLPGContext.hpp"
+#include "utils/GLPGShaderUtils.hpp"
+#include "math/GLPGMath.hpp"
+#include "utils/GLPGUtils.hpp"
 using namespace glpg;
 
 // Number of triangles to be drawn

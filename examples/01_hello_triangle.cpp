@@ -1,7 +1,7 @@
-#include "native_window.hpp"
-#include "opengl_context.hpp"
-#include "utils/opengl_shader_utils.hpp"
-#include "utils/misc_utils.hpp"
+#include "GLPGWindow.hpp"
+#include "GLPGContext.hpp"
+#include "utils/GLPGShaderUtils.hpp"
+#include "utils/GLPGUtils.hpp"
 #ifdef __linux__
 #include <unistd.h>
 #endif

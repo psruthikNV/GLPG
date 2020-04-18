@@ -1,17 +1,17 @@
 #include <thread>
 
-#include "native_window.hpp"
-#include "opengl_context.hpp"
-#include "utils/opengl_shader_utils.hpp"
-#include "math/glpg_math.hpp"
-#include "utils/misc_utils.hpp"
-
+#include "GLPGWindow.hpp"
+#include "GLPGContext.hpp"
+#include "utils/GLPGShaderUtils.hpp"
+#include "math/GLPGMath.hpp"
+#include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+static bool game_is_running = true;
 using namespace glpg;
-
+using namespace GLPG;
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}),
 };
@@ -79,12 +79,13 @@ void GLPGRenderLoop()
     GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
+    GLPGEventLoop eventLoop;
     
     std::vector<glpg::VertexIN> monkeyVertices;
     std::vector<glpg::FaceIN> faceStuff;
 
     // Load the vertices of the monkey obj
-    if (!glpg::LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj", monkeyVertices, faceStuff)) {
+    if (!glpg::LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return;
     }
@@ -173,7 +174,8 @@ void GLPGRenderLoop()
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
 
-    while (1) {
+    while(eventLoop.GetEvent() != GLPGEvent::WindowClose) {
+   // while (1) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
             GetSystemTime(&sysTime);
@@ -194,6 +196,8 @@ void GLPGRenderLoop()
         }
 	    gc.swapBuffers();
     }
+    std::cout << "\n done with stuff\n";
+    game_is_running = false;
 
 }
 
@@ -202,13 +206,12 @@ void GLPGUpdateLoop()
 {
     LARGE_INTEGER timer;
     std::cout << "Launched update thread\n";
-    const uint32_t UpdatesPerSecond = 10U;
+    const uint32_t UpdatesPerSecond = 60U;
     const uint32_t Skip = 1000U / UpdatesPerSecond;
 
     DWORD next_game_tick = GetTickCount();
 
     int sleep_time = 0;
-    bool game_is_running = true;
     const float radius = 10.0f;
     
     while( game_is_running ) {
@@ -217,8 +220,7 @@ void GLPGUpdateLoop()
         GLPGState.camZ = cos(timer.QuadPart * 0.0000001F) * radius;
         next_game_tick += Skip;
         sleep_time = next_game_tick - GetTickCount();
-        if( sleep_time >= 0 ) {
-            std::cout << "Sleeping\n";  
+        if( sleep_time >= 0 ) { 
             Sleep( sleep_time );
         }
     }
@@ -228,7 +230,9 @@ int main(int argc, char **argv)
 {
     std::thread GLPGRenderThread(GLPGRenderLoop);
     std::thread GLPGUpdateThread(GLPGUpdateLoop);
+    std::cout << "Done launching loops\n";
     GLPGRenderThread.join();
     GLPGUpdateThread.join();
+    std::cout << "Returned from loops\n";
     return 0;
 }

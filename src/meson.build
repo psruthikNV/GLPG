@@ -1,4 +1,4 @@
-test_src = files('native_window.cpp', 'opengl_context.cpp', 'opengl_shader_utils.cpp')
+test_src = files('GLPGWindow.cpp', 'GLPGContext.cpp', 'GLPGShaderUtils.cpp', 'GLPGEvent.cpp')
 
 if host_machine.system() == 'linux'
     deps = [lib_xcb, lib_egl, lib_gl]

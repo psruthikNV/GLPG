@@ -30,7 +30,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
-using namespace glpg;
+using namespace GLPG;
 
 // Number of triangles to be drawn
 int g_numTriangles = 3;
@@ -59,8 +59,8 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
@@ -133,5 +133,5 @@ int main(int argc, char **argv)
     }
 
     gc.swapBuffers();
-    glpg::pause();
+    pause();
 }

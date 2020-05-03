@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace glpg;
+using namespace GLPG;
 extern bool compileShader(int shaderObject, const char *shaderSource)
 {
     int success = GL_FALSE;

@@ -31,8 +31,8 @@ PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
-using namespace glpg;
-void* glContext::loadGLFunction(const char *name) {
+using namespace GLPG;
+void* GLPGContext::loadGLFunction(const char *name) {
 #ifdef _WIN32
     void *f = (void *)wglGetProcAddress(name);
 
@@ -58,7 +58,7 @@ void* glContext::loadGLFunction(const char *name) {
 #endif
 }
 
-void glContext::initializeGLFunctionPointers()
+void GLPGContext::initializeGLFunctionPointers()
 {
     glGenBuffers = (PFNGLGENBUFFERSPROC)loadGLFunction("glGenBuffers");
     glBindBuffer = (PFNGLBINDBUFFERPROC)loadGLFunction("glBindBuffer");
@@ -88,7 +88,7 @@ void glContext::initializeGLFunctionPointers()
     glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)loadGLFunction("glGenerateMipmap");
 }
 
-bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
+bool GLPGContext::initializeGlContext(GLPGWindow &window, uint32_t majorVersion,
                                     uint32_t minorVersion)
 {
     bool ret;
@@ -114,7 +114,7 @@ bool glContext::initializeGlContext(nativeWindow &window, uint32_t majorVersion,
 };
 
 #ifdef __linux__
-bool glContext::initializeEglBackend(nativeWindow &window)
+bool GLPGContext::initializeEglBackend(GLPGWindow &window)
 {
     EGLBoolean ret;
     EGLint numConfig;
@@ -179,7 +179,7 @@ bool glContext::initializeEglBackend(nativeWindow &window)
     return true;
 }
 #elif defined _WIN32
-bool glContext::createDummyGlContext()
+bool GLPGContext::createDummyGlContext()
 {
     PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -222,7 +222,7 @@ bool glContext::createDummyGlContext()
 }
 
 
-bool glContext::createActualGlContext()
+bool GLPGContext::createActualGlContext()
 {
     int pixelFormatsIdx[10];
 	UINT pfn;
@@ -265,7 +265,7 @@ bool glContext::createActualGlContext()
     return true;
 }
 
-bool glContext::loadWglFunctionPointers()
+bool GLPGContext::loadWglFunctionPointers()
 {
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)loadGLFunction("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)loadGLFunction("wglCreateContextAttribsARB");
@@ -278,7 +278,7 @@ bool glContext::loadWglFunctionPointers()
     }
 
 }
-bool glContext::initializeWglBackend(nativeWindow &window)
+bool GLPGContext::initializeWglBackend(GLPGWindow &window)
 {
     wglRes.hDc = window.getNativeHandle();
     if (!createDummyGlContext()) {
@@ -294,7 +294,7 @@ bool glContext::initializeWglBackend(nativeWindow &window)
 }
 #endif
 
-bool glContext::swapBuffers()
+bool GLPGContext::swapBuffers()
 {
 #ifdef __linux__
     eglSwapBuffers(eglRes.display, eglRes.surface);
@@ -303,6 +303,6 @@ bool glContext::swapBuffers()
 #endif
     return true;
 }
-glContext::glContext()
+GLPGContext::GLPGContext()
 {
 }

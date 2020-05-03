@@ -6,11 +6,12 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 #include "GLPGEvent.hpp"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
 static bool game_is_running = true;
-using namespace glpg;
 using namespace GLPG;
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}),
@@ -56,6 +57,7 @@ const char *fragmentSource =
     "   fragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
     "}\0";
 
+// Who needs mutexes?
 struct SharedGameState
 {
     float camX;
@@ -66,9 +68,8 @@ SharedGameState GLPGState;
 
 void GLPGRenderLoop()
 {
-    std::cout << "Launched render thread\n";
-    glContext gc;
-    nativeWindow win(800, 600);
+    GLPGContext gc;
+    GLPGWindow win(800, 600);
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
@@ -81,11 +82,13 @@ void GLPGRenderLoop()
     GLuint projectionMatrixLocation = 0;
     GLPGEventLoop eventLoop;
     
-    std::vector<glpg::VertexIN> monkeyVertices;
-    std::vector<glpg::FaceIN> faceStuff;
+    std::vector<VertexIN> monkeyVertices;
+    std::vector<FaceIN> faceStuff;
 
     // Load the vertices of the monkey obj
-    if (!glpg::LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
+    const char *monkeyPath = "C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj";
+
+    if (!LoadObjFile(monkeyPath, monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return;
     }
@@ -152,7 +155,7 @@ void GLPGRenderLoop()
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glpg::VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, vtxIdx.size() * sizeof(uint32_t), vtxIdx.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void *)0);
     glEnableVertexAttribArray(0);
@@ -165,47 +168,44 @@ void GLPGRenderLoop()
     vec3_f translateVector = {0.0f, 0.0f, 0.0f};
     mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     mat4x4_f modelMatrix;
-    mat4x4_f viewMatrix;
+    mat4x4_f view;
     SYSTEMTIME sysTime;
     LARGE_INTEGER timer;
     _LARGE_INTEGER test;
 
     modelMatrix = translate(modelMatrix, translateVector);
-    viewMatrix = lookAt(eyePosition, viewVector, upVector);
+    
     glClearColor(0.0, 1.0, 1.0, 1.0);
 
     while(eventLoop.GetEvent() != GLPGEvent::WindowClose) {
-   // while (1) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
             GetSystemTime(&sysTime);
             vec3_f eyePos = {(float)(sin(sysTime.wMilliseconds) * 10.0), 0.0F, (float)(cos(sysTime.wMilliseconds) * 10.0)};
             modelMatrix.identity();
-            modelMatrix = translate(modelMatrix, trianglePositions[i]);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             const float radius = 10.0f;
-            glm::mat4 view = glm::mat4(1.0);
+            glm::mat4 viewGlm = glm::mat4(1.0);
             QueryPerformanceCounter(&timer);
-
             float camX = sin(timer.QuadPart * 0.0000001F) * radius;
             float camZ = cos(timer.QuadPart * 0.0000001F) * radius;
-            view = glm::lookAt(glm::vec3(GLPGState.camX, 0.0, GLPGState.camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-            glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &view[0][0]);
+            viewGlm = glm::lookAt(glm::vec3(GLPGState.camX, 0.0, GLPGState.camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
+            view = lookAt(vec3_f({GLPGState.camX, 0.0, GLPGState.camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
+            glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, view.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);
         }
 	    gc.swapBuffers();
     }
-    std::cout << "\n done with stuff\n";
     game_is_running = false;
-
 }
 
 // This thread updates 60 times per second.
+// This still does not seem to provide time independent render updates
 void GLPGUpdateLoop()
 {
     LARGE_INTEGER timer;
-    std::cout << "Launched update thread\n";
+
     const uint32_t UpdatesPerSecond = 60U;
     const uint32_t Skip = 1000U / UpdatesPerSecond;
 
@@ -230,9 +230,9 @@ int main(int argc, char **argv)
 {
     std::thread GLPGRenderThread(GLPGRenderLoop);
     std::thread GLPGUpdateThread(GLPGUpdateLoop);
-    std::cout << "Done launching loops\n";
+
     GLPGRenderThread.join();
     GLPGUpdateThread.join();
-    std::cout << "Returned from loops\n";
+
     return 0;
 }

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <math.h>
 
-namespace glpg {
+namespace GLPG {
 
     template <std::size_t L, typename T>
         class vec
@@ -32,6 +32,7 @@ namespace glpg {
                 vec normalize();
                 T length();
                 vec<3, T> cross(vec<3, T>&);
+                T dot(vec<L, T>&);
         };
 
     template <std::size_t L, typename T>
@@ -144,6 +145,15 @@ namespace glpg {
                 vals[0]*v1.vals[1] - vals[1]*v1.vals[0]};
             return temp;
         }
+    template <std::size_t L, typename T>
+    T vec<L, T>::dot(vec<L, T> &v1)
+    {
+        T rv = T(0);
+        for (std::size_t i = 0; i < L; i++) {
+            rv += vals[i] * v1.vals[i];
+        }
+        return rv;
+    }
 
     using vec4_i = vec<4, int>;
     using vec4_f = vec<4, float>;

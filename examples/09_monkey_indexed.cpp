@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-using namespace glpg;
+using namespace GLPG;
 
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}),
@@ -55,8 +55,8 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
@@ -68,8 +68,8 @@ int main(int argc, char **argv)
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
 
-    std::vector<glpg::VertexIN> monkeyVertices;
-    std::vector<glpg::FaceIN> faceStuff;
+    std::vector<VertexIN> monkeyVertices;
+    std::vector<FaceIN> faceStuff;
     uint32_t indices[] = {
         1, 2, 4,
         2, 4, 3,
@@ -89,8 +89,8 @@ int main(int argc, char **argv)
         indices[i] -= 1;
     }
 
-    if (!glpg::LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
-    //if (!glpg::LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
+    //if (!LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glpg::VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, vtxIdx.size() * sizeof(uint32_t), vtxIdx.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void *)0);
     glEnableVertexAttribArray(0);
@@ -206,5 +206,5 @@ int main(int argc, char **argv)
         }
 	    gc.swapBuffers();
     }
-    glpg::pause();
+    pause();
 }

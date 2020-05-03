@@ -7,9 +7,9 @@
 #elif defined _WIN32
 #include <Windows.h>
 #endif
-namespace glpg {
+namespace GLPG {
 
-    class nativeWindow
+    class GLPGWindow
     {
         private:
             uint32_t windowWidth;
@@ -29,7 +29,7 @@ namespace glpg {
 #endif
         public:
             /* Constructor */
-            nativeWindow(uint32_t, uint32_t);
+            GLPGWindow(uint32_t, uint32_t);
 
             /* Getters */
             inline uint32_t getWindowWidth() const;
@@ -44,12 +44,12 @@ namespace glpg {
 #endif
     };
 
-    inline uint32_t nativeWindow::getWindowWidth() const
+    inline uint32_t GLPGWindow::getWindowWidth() const
     {
         return windowWidth;
     }
 
-    inline uint32_t nativeWindow::getWindowHeight() const
+    inline uint32_t GLPGWindow::getWindowHeight() const
     {
         return windowHeight;
     }

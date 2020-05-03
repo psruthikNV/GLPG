@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GLPGWindow.hpp"
+#include "GLPGCamera.hpp"
 
 namespace GLPG {
     enum class GLPGEvent : uint32_t {

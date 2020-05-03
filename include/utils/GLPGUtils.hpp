@@ -8,7 +8,7 @@
 #include <unistd.h>
 #endif
 
-namespace glpg {
+namespace GLPG {
     void pause()
     {
 #ifdef __linux__
@@ -54,17 +54,14 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx, std::vector
                 tempVertex.color[0] = 0.0F;
                 tempVertex.color[1] = 0.0F;
                 tempVertex.color[2] = 0.0F;
-                //tempVertex.pos = { x, y, z };
-                //tempVertex.color = { 0.0F, 0.0F, 1.0F };
                 v_vtx.push_back(std::move(tempVertex));
-                //std::cout << "VTX: " << x << " " << y << " " << z <<"\n";
             } else if (type == "f") {
                 char slash; // K, this shit needs to be removed.
                 FaceIN tempFace;
                 uint32_t i = 0U;
                 uint32_t temp;
                 while (!in.eof()) {
-                //for (uint32_t i = 0U; i < 4U; i++) {
+
                     in >> temp;
                     tempFace.vertexIndices.push_back(temp - 1);
                     in >> slash;
@@ -72,7 +69,6 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx, std::vector
                     in >> slash;
                     in >> tempFace.normalIndices[i];
                     ++i;
-                //}
                 }
                 v_face.push_back(std::move(tempFace));
             }

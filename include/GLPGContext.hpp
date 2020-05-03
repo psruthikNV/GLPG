@@ -45,9 +45,9 @@ extern PFNGLUNIFORM4FPROC glUniform4f;
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
-namespace glpg {
+namespace GLPG {
 
-    class glContext
+    class GLPGContext
     {
         private:
             struct glContextConfig
@@ -65,7 +65,7 @@ namespace glpg {
                 EGLSurface surface;
             };
             eglResources eglRes;
-            bool initializeEglBackend(nativeWindow &window);
+            bool initializeEglBackend(GLPGWindow &window);
 #elif defined _WIN32
             struct wglResources
             {
@@ -75,7 +75,7 @@ namespace glpg {
                 int pixelFormat;
             };
             wglResources wglRes;
-            bool initializeWglBackend(nativeWindow &window);
+            bool initializeWglBackend(GLPGWindow &window);
             bool createDummyGlContext();
             bool createActualGlContext();
             bool loadWglFunctionPointers();
@@ -84,10 +84,10 @@ namespace glpg {
             void initializeGLFunctionPointers();
 
         public:
-            glContext();
-            glContext(nativeWindow &window);
-            glContext(nativeWindow &window, uint32_t majorVersion, uint32_t minorVersion);
-            bool initializeGlContext(nativeWindow &window, uint32_t majorVersion,
+            GLPGContext();
+            GLPGContext(GLPGWindow &window);
+            GLPGContext(GLPGWindow &window, uint32_t majorVersion, uint32_t minorVersion);
+            bool initializeGlContext(GLPGWindow &window, uint32_t majorVersion,
                     uint32_t minorVersion);
             bool swapBuffers();
     };

@@ -6,7 +6,7 @@
 
 constexpr float PI_F = 3.14159265358979F;
 
-namespace glpg {
+namespace GLPG {
 
     template <std::size_t R, std::size_t C, std::size_t X, typename T>
         inline matrix<R, X, T> matmul(matrix<R, C, T>& m1, matrix<C, X, T>& m2)
@@ -76,14 +76,14 @@ namespace glpg {
     template <typename T>
         matrix<4, 4, T> lookAt(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
         {
-            vec<3, T> w = (center - eye).normalize();
+            vec<3, T> w = (eye - center).normalize();
             vec<3, T> temp = up.cross(w);
             vec<3, T> u = temp.normalize();
             vec<3, T> v = w.cross(u);
 
-            matrix<4, 4, T> rv = {u[0], u[1], u[2], -eye[0],
-                v[0], v[1], v[2], -eye[1],
-                w[0], w[1], w[2], -eye[2],
+            matrix<4, 4, T> rv = {u[0], u[1], u[2], -u.dot(eye),
+                v[0], v[1], v[2], -v.dot(eye),
+                w[0], w[1], w[2], -w.dot(eye),
                 0, 0, 0, 1};
             return rv;
         }

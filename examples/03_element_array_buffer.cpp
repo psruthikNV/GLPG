@@ -3,7 +3,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
-using namespace glpg;
+using namespace GLPG;
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -34,8 +34,8 @@ const char *fragmentSource =
 
 int main ()
 {
-	nativeWindow win(800, 600);
-	glContext gc;
+	GLPGWindow win(800, 600);
+	GLPGContext gc;
 	GLuint VAO;
 	GLuint VBO;
 	GLuint EBO;
@@ -90,6 +90,6 @@ int main ()
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     gc.swapBuffers();
-    glpg::pause();
+    pause();
     return 0;
 }

@@ -1,13 +1,13 @@
 #include "GLPGWindow.hpp"
 
-using namespace glpg;
-nativeWindow::nativeWindow(uint32_t w, uint32_t h)
+using namespace GLPG;
+GLPGWindow::GLPGWindow(uint32_t w, uint32_t h)
 {
     windowWidth = w;
     windowHeight = h;
 }
 
-bool nativeWindow::createNativeWindow()
+bool GLPGWindow::createNativeWindow()
 {
     bool ret;
 #ifdef __linux__
@@ -23,7 +23,7 @@ bool nativeWindow::createNativeWindow()
 }
 
 #ifdef __linux__
-bool nativeWindow::createNativeXcbWindow()
+bool GLPGWindow::createNativeXcbWindow()
 {
     xcbConnection = xcb_connect(NULL, NULL);
     if (xcb_connection_has_error(xcbConnection)) {
@@ -43,13 +43,13 @@ bool nativeWindow::createNativeXcbWindow()
     return true;
 }
 
-xcb_window_t nativeWindow::getNativeHandle() const
+xcb_window_t GLPGWindow::getNativeHandle() const
 {
     return xcbWindow;
 }
 #elif defined _WIN32
 
-HDC nativeWindow::getNativeHandle() const
+HDC GLPGWindow::getNativeHandle() const
 {
     return (GetDC(hWindow));
 }
@@ -80,7 +80,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	return 0;
 }
 
-bool nativeWindow::createNativeWin32Window()
+bool GLPGWindow::createNativeWin32Window()
 {
     hInstance = GetModuleHandle(NULL);
     wc.lpfnWndProc = windowProc;

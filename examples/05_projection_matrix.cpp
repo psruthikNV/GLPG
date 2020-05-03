@@ -4,7 +4,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
-using namespace glpg;
+using namespace GLPG;
 
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}), 
@@ -83,8 +83,8 @@ const char *fragmentSource =
 int main(int argc, char **argv)
 {
     // GLPG resources
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
 
     // GL resources
     GLuint VBO;

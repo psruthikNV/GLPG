@@ -4,7 +4,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
-using namespace glpg;
+using namespace GLPG;
 
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}), 
@@ -99,8 +99,8 @@ vec3_f getEyePosition()
 
 int main(int argc, char **argv)
 {
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
@@ -111,10 +111,10 @@ int main(int argc, char **argv)
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
 
-    std::vector<glpg::VertexIN> monkeyVertices;
-    std::vector<glpg::FaceIN> faceStuff;
+    std::vector<VertexIN> monkeyVertices;
+    std::vector<FaceIN> faceStuff;
 
-    if (!glpg::LoadObjFile("E:\\Code\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("E:\\Code\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glpg::VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexIN) * monkeyVertices.size(), monkeyVertices.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GL_FLOAT), (void *)0);
     glEnableVertexAttribArray(0);
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
@@ -194,5 +194,5 @@ int main(int argc, char **argv)
         }
 	    gc.swapBuffers();
     }
-    glpg::pause();
+    pause();
 }

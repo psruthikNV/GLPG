@@ -6,7 +6,7 @@
 #include <unistd.h>
 #endif
 
-using namespace glpg;
+using namespace GLPG;
 
 const float vertexData[] = {
     -0.5f, -0.5f, 0.0f,
@@ -31,8 +31,8 @@ const char *fragmentShaderSource =
 
 int main()
 {
-    nativeWindow win(640, 480);
-    glContext gc;
+    GLPGWindow win(640, 480);
+    GLPGContext gc;
     GLuint VBO = 0;
     GLuint VAO = 0;
     GLuint vtxShaderObj = 0;
@@ -82,6 +82,6 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
     gc.swapBuffers();
-    glpg::pause();
+    pause();
     return 0;
 }

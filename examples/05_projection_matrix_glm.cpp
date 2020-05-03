@@ -5,7 +5,7 @@
 #include "utils/misc_utils.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-using namespace glpg;
+using namespace GLPG;
 
 const float vertexData[] = {
     -50.0f, -50.0f, -0.2f,
@@ -33,8 +33,8 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
@@ -122,5 +122,5 @@ int main(int argc, char **argv)
 	    glDrawArrays(GL_TRIANGLES, 0, 3);
 	    gc.swapBuffers();
     }
-    glpg::pause();
+    pause();
 }

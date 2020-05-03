@@ -13,7 +13,7 @@
 #include <array>
 #include <initializer_list>
 
-namespace glpg {
+namespace GLPG {
 
     template <std::size_t R, std::size_t C, typename T>
         class matrix

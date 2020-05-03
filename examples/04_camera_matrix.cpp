@@ -37,7 +37,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
-using namespace glpg;
+using namespace GLPG;
 
 const float vertexData[] = {
     -0.5f, -0.5f, -0.5f,
@@ -63,8 +63,8 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    nativeWindow win(800, 600);
-    glContext gc;
+    GLPGWindow win(800, 600);
+    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
@@ -134,5 +134,5 @@ int main(int argc, char **argv)
 
 	gc.swapBuffers();
 
-    glpg::pause();
+    pause();
 }

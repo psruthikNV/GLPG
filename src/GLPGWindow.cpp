@@ -76,7 +76,6 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-    std::cout << "Retunred from windowProc\n";
 	return 0;
 }
 

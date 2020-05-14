@@ -6,6 +6,7 @@ namespace GLPG {
     {
         loopInited = true;
         loopTerminate = false;
+        activeCamera = nullptr;
     }
 /*
     bool GLPGEventLoop::RegisterGLPGWindow(nativeWindow &window)
@@ -23,13 +24,44 @@ namespace GLPG {
         GLPGEvent rv = GLPGEvent::WindowCreate;
 #ifdef _WIN32
         if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
-            if (message.message == WM_QUIT) {
-                rv = GLPGEvent::WindowClose;
+            switch (message.message)
+            {
+                case WM_QUIT:
+                    rv = GLPGEvent::WindowClose;
+                    break;
+                case WM_KEYDOWN:
+                    switch (message.wParam)
+                    {
+                        case VK_LEFT:
+                            rv = GLPGEvent::LeftArrow;
+                            break;
+                        case VK_RIGHT:
+                            rv = GLPGEvent::RightArrow;
+                            break;
+                        case VK_UP:
+                            rv = GLPGEvent::UpArrow;
+                            break;
+                        case VK_DOWN:
+                            rv = GLPGEvent::DownArrow;
+                            break;
+                        case 0x57:
+                            rv = GLPGEvent::Key_W;
+                            break;
+                        case 0x41:
+                            rv = GLPGEvent::Key_A;
+                            break;
+                        case 0x44:
+                            rv = GLPGEvent::Key_D;
+                            break;
+                        case 0x53:
+                            rv = GLPGEvent::Key_S;
+                            break;
+                        default: // Do nothing
+                            break;
+                    }
+                default: // Do nothing
+                    break;
             }
-            if (message.message == WM_KEYDOWN) {
-                std::cout << "Key Pressed\n";
-            }
-
             TranslateMessage(&message);
             DispatchMessage(&message);
         }
@@ -37,5 +69,18 @@ namespace GLPG {
         return rv;
     }
 
-};
+    bool GLPGEventLoop::SetActiveCamera(GLPGCamera *camera)
+    {
+        if (camera) {
+            activeCamera = camera;
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    GLPGCamera& GLPGEventLoop::GetActiveCamera()
+    {
+        return *activeCamera;
+    }
+};

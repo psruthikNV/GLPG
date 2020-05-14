@@ -47,3 +47,8 @@ executable('10_threaded_update', '10_threaded_update.cpp',
            include_directories : glpg_include_path,
            dependencies : deps,
            link_with : libglpg)
+
+executable('11_camera_movement', '11_camera_movement.cpp',
+           include_directories : glpg_include_path,
+           dependencies : deps,
+           link_with : libglpg)

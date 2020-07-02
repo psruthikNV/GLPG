@@ -3,6 +3,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 
 using namespace GLPG;
 
@@ -156,7 +157,9 @@ int main(int argc, char **argv)
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    while (1) {
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
         eyePosition = {0.0F, 0.0F, 3.0F};
         viewMatrix = lookAt(eyePosition, viewVector, upVector);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

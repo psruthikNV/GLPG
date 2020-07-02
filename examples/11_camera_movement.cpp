@@ -6,11 +6,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 #include "GLPGEvent.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
+
 static bool game_is_running = true;
 using namespace GLPG;
 vec3_f trianglePositions[] = {
@@ -87,7 +83,7 @@ void GLPGRenderLoop()
     std::vector<FaceIN> faceStuff;
 
     // Load the vertices of the monkey obj
-    const char *monkeyPath = "C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj";
+    const char *monkeyPath = "C:\\Users\\psrut\\repos\\GLPG\\assets\\monkey.obj";
 
     if (!LoadObjFile(monkeyPath, monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";

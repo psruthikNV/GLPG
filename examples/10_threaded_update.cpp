@@ -6,11 +6,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 #include "GLPGEvent.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
+
 static bool game_is_running = true;
 using namespace GLPG;
 vec3_f trianglePositions[] = {
@@ -86,7 +82,7 @@ void GLPGRenderLoop()
     std::vector<FaceIN> faceStuff;
 
     // Load the vertices of the monkey obj
-    const char *monkeyPath = "C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj";
+    const char *monkeyPath = "C:\\Users\\psrut\\repos\\GLPG\\assets\\monkey.obj";
 
     if (!LoadObjFile(monkeyPath, monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
@@ -185,11 +181,9 @@ void GLPGRenderLoop()
             modelMatrix.identity();
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             const float radius = 10.0f;
-            glm::mat4 viewGlm = glm::mat4(1.0);
             QueryPerformanceCounter(&timer);
             float camX = sin(timer.QuadPart * 0.0000001F) * radius;
             float camZ = cos(timer.QuadPart * 0.0000001F) * radius;
-            viewGlm = glm::lookAt(glm::vec3(GLPGState.camX, 0.0, GLPGState.camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
             view = lookAt(vec3_f({GLPGState.camX, 0.0, GLPGState.camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, view.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());

@@ -1,5 +1,6 @@
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
+#include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "utils/GLPGUtils.hpp"
 #ifdef __linux__
@@ -38,6 +39,8 @@ int main()
     GLuint vtxShaderObj = 0;
     GLuint fragShaderObj = 0;
     GLuint programObj = 0;
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
 
     if (!win.createNativeWindow()) {
         std::cout << "Failed to create Native Window" << std::endl;
@@ -78,10 +81,11 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glFlush();
-    gc.swapBuffers();
-    pause();
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glFlush();
+        gc.swapBuffers();
+    }
     return 0;
 }

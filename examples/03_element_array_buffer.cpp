@@ -3,6 +3,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 using namespace GLPG;
 
 const float vertexData[] = {
@@ -87,9 +88,12 @@ int main ()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    gc.swapBuffers();
-    pause();
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+        glClear(GL_COLOR_BUFFER_BIT);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        gc.swapBuffers();
+    }
     return 0;
 }

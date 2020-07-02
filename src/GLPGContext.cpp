@@ -3,6 +3,8 @@
 #ifdef _WIN32
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
 #endif
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLBINDBUFFERPROC glBindBuffer;
@@ -30,6 +32,12 @@ PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+PFNGLGENQUERIESARBPROC glGenQueries;
+PFNGLBEGINQUERYARBPROC glBeginQuery;
+PFNGLENDQUERYARBPROC glEndQuery;
+PFNGLGETQUERYOBJECTIVARBPROC glGetQueryObjectiv;
+PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v;
+PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v;
 
 using namespace GLPG;
 void* GLPGContext::loadGLFunction(const char *name) {
@@ -86,6 +94,12 @@ void GLPGContext::initializeGLFunctionPointers()
     glUniform4f = (PFNGLUNIFORM4FPROC)loadGLFunction("glUniform4f");
     glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)loadGLFunction("glUniformMatrix4fv");
     glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)loadGLFunction("glGenerateMipmap");
+    glGenQueries = (PFNGLGENQUERIESARBPROC)loadGLFunction("glGenQueries");
+    glBeginQuery = (PFNGLBEGINQUERYARBPROC)loadGLFunction("glBeginQuery");
+    glEndQuery = (PFNGLENDQUERYARBPROC)loadGLFunction("glEndQuery"); 
+    glGetQueryObjectiv = (PFNGLGETQUERYOBJECTIVARBPROC)loadGLFunction("glGetQueryObjectiv");
+    glGetQueryObjecti64v = (PFNGLGETQUERYOBJECTI64VEXTPROC)loadGLFunction("glGetQueryObjecti64v");
+    glGetQueryObjectui64v = (PFNGLGETQUERYOBJECTUI64VEXTPROC)loadGLFunction("glGetQueryObjectui64v");
 }
 
 bool GLPGContext::initializeGlContext(GLPGWindow &window, uint32_t majorVersion,
@@ -106,9 +120,17 @@ bool GLPGContext::initializeGlContext(GLPGWindow &window, uint32_t majorVersion,
         return false;
     }
     initializeGLFunctionPointers();
+    GLint numExtensions = 0;
     std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     std::cout << "GPU: " << glGetString(GL_RENDERER) << std::endl;
-    //std::cout << "OpenGL Extensions: " << glGetString(GL_EXTENSIONS) << std::endl;
+    std::cout << "Extensions :\n" << std::endl;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+    for (int i = 0; i < numExtensions; i++) {
+        const char* extension = (const char*)glGetStringi(GL_EXTENSIONS, i);
+        std::cout << extension << std::endl;
+    }
+    // Default to swap interval 0
+    setSwapInterval(0);
 
     return true;
 };
@@ -269,6 +291,8 @@ bool GLPGContext::loadWglFunctionPointers()
 {
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)loadGLFunction("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)loadGLFunction("wglCreateContextAttribsARB");
+    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)loadGLFunction("wglSwapIntervalEXT");
+    wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)loadGLFunction("wglGetSwapIntervalEXT");
 
     if (!wglChoosePixelFormatARB || !wglCreateContextAttribsARB) {
         std::cout << "Failed to load required WGL Functions" << std::endl;
@@ -303,6 +327,26 @@ bool GLPGContext::swapBuffers()
 #endif
     return true;
 }
+
+bool GLPGContext::setSwapInterval(int interval)
+{
+    if (interval < 0) {
+        return false;
+    }
+
+#ifdef _WIN32
+    if (!wglSwapIntervalEXT(interval)) {
+        std::cout << "Failed to set SwapInterval\n";
+        return false;
+    } else {
+        return true;
+    }
+#elif defined __linux__
+    return false; // TODO for EGL
+#endif
+}
+
+
 GLPGContext::GLPGContext()
 {
 }

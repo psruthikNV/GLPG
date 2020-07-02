@@ -17,6 +17,8 @@
 #ifdef _WIN32
 extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+extern PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
 #endif
 extern PFNGLGENBUFFERSPROC glGenBuffers;
 extern PFNGLBINDBUFFERPROC glBindBuffer;
@@ -44,6 +46,12 @@ extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLUNIFORM4FPROC glUniform4f;
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+extern PFNGLGENQUERIESARBPROC glGenQueries;
+extern PFNGLBEGINQUERYARBPROC glBeginQuery;
+extern PFNGLENDQUERYARBPROC glEndQuery;
+extern PFNGLGETQUERYOBJECTIVARBPROC glGetQueryObjectiv;
+extern PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v;
+extern PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v;
 
 namespace GLPG {
 
@@ -90,5 +98,7 @@ namespace GLPG {
             bool initializeGlContext(GLPGWindow &window, uint32_t majorVersion,
                     uint32_t minorVersion);
             bool swapBuffers();
+            int getSwapInterval();
+            bool setSwapInterval(int interval);
     };
 }

@@ -36,6 +36,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 
 using namespace GLPG;
 
@@ -126,13 +127,15 @@ int main(int argc, char **argv)
     modelMatrix = translate(modelMatrix, translateVector);
     mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+        glClear(GL_COLOR_BUFFER_BIT);
 
-    glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
-    glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
+        glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
+    	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	gc.swapBuffers();
-
-    pause();
+    	gc.swapBuffers();
+    }
 }

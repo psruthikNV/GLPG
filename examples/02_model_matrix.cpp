@@ -30,6 +30,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 using namespace GLPG;
 
 // Number of triangles to be drawn
@@ -120,18 +121,20 @@ int main(int argc, char **argv)
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (uint32_t i = 0; i < g_numTriangles; i++) {
-        mat4x4_f modelMatrix;
-        // For each triangle being drawn we generate a random translation vector
-        // which is then used to create the model matrix.
-        vec3_f translateVector = {dist(gen),
-                                  dist(gen),
-                                  dist(gen)};
-        modelMatrix = translate(modelMatrix, translateVector);
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+        for (uint32_t i = 0; i < g_numTriangles; i++) {
+            mat4x4_f modelMatrix;
+            // For each triangle being drawn we generate a random translation vector
+            // which is then used to create the model matrix.
+            vec3_f translateVector = {dist(gen),
+                                      dist(gen),
+                                      dist(gen)};
+            modelMatrix = translate(modelMatrix, translateVector);
+            glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+        gc.swapBuffers();
     }
-
-    gc.swapBuffers();
-    pause();
 }

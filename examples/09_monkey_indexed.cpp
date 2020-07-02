@@ -1,13 +1,11 @@
+#include <chrono>
+
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
+#include "GLPGEvent.hpp"
 using namespace GLPG;
 
 vec3_f trianglePositions[] = {
@@ -89,7 +87,7 @@ int main(int argc, char **argv)
         indices[i] -= 1;
     }
 
-    if (!LoadObjFile("C:\\Users\\psrut\\3D Objects\\monkey.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("C:\\Users\\psrut\\repos\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
     //if (!LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
@@ -182,29 +180,51 @@ int main(int argc, char **argv)
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    while (1) {
+    GLPGEvent event;
+    GLPGEventLoop eventLoop;
+    GLuint timerQuery;
+    GLuint64 timeElapsed = 0;
+    GLint available = 0;
+    int k = 0;
+    glGenQueries(1, &timerQuery);
+    if (!timerQuery) {
+        std::cout << "Failed to generate query object\n";
+        return -1;
+    }
+    uint64_t frameIdx = 0U;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+        
+        if (frameIdx) {
+            double timeElapsedMs = (double)(timeElapsed / 1000000.0);
+            //glGetQueryObjectiv(timerQuery, GL_QUERY_RESULT, &available);
+            auto start = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+            glGetQueryObjectui64v(timerQuery, GL_QUERY_RESULT, &timeElapsed);
+            auto end = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+            std::cout << "chrono delta : " << end - start << "\n";
+            std::cout << "GPU time: " << timeElapsedMs << "\n";
+            std::cout << "FPS : " << 1000.0 / timeElapsedMs << "\n";
+        }
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
-            //std::cout << "Frame : " << i << "\n";
             GetSystemTime(&sysTime);
-            //std::cout << "Seconds : " << sysTime.wSecond << "\n";
             vec3_f eyePos = {(float)(sin(sysTime.wMilliseconds) * 10.0), 0.0F, (float)(cos(sysTime.wMilliseconds) * 10.0)};
             modelMatrix.identity();
             modelMatrix = translate(modelMatrix, trianglePositions[i]);
+            glBeginQuery(GL_TIME_ELAPSED, timerQuery);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             const float radius = 10.0f;
-            glm::mat4 view = glm::mat4(1.0);
-            QueryPerformanceCounter(&timer);
 
             float camX = sin(timer.QuadPart * 0.00000001F) * radius;
             float camZ = cos(timer.QuadPart * 0.00000001F) * radius;
-            view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-            glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &view[0][0]);
+            viewMatrix = lookAt(vec3_f{camX, 0.0, camZ}, vec3_f{0.0, 0.0, 0.0}, vec3_f{0.0, 1.0, 0.0});
+            glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
-            //glDrawArrays(GL_TRIANGLES, 0, monkeyVertices.size());
+            glDrawArrays(GL_TRIANGLES, 0, monkeyVertices.size());
             glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);
         }
 	    gc.swapBuffers();
+        glEndQuery(GL_TIME_ELAPSED);
+        frameIdx++;
     }
-    pause();
 }

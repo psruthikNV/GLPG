@@ -3,6 +3,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+#include "GLPGEvent.hpp"
 
 using namespace GLPG;
 
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
     std::vector<VertexIN> monkeyVertices;
     std::vector<FaceIN> faceStuff;
 
-    if (!LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("C:\\Users\\psrut\\repos\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -158,7 +159,9 @@ int main(int argc, char **argv)
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    while (1) {
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
+    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
             modelMatrix.identity();

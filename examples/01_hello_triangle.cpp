@@ -2,9 +2,6 @@
 #include "GLPGContext.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "utils/GLPGUtils.hpp"
-#ifdef __linux__
-#include <unistd.h>
-#endif
 
 using namespace GLPG;
 
@@ -70,6 +67,7 @@ int main()
     }
 
     glUseProgram(programObj);
+    glEnable(GL_STENCIL_TEST);
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
@@ -82,6 +80,13 @@ int main()
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
     gc.swapBuffers();
-    pause();
+    while (1) {
+        glClearColor(0.0, 1.0, 1.0, 1.0);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glClear(GL_COLOR_BUFFER_BIT);
+        //glColorMask(GL_FALSE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        gc.swapBuffers();
+    }
     return 0;
 }

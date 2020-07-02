@@ -30,6 +30,14 @@ PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+PFNGLPATHCOMMANDSNVPROC glPathCommandsNV;
+PFNGLPATHSTRINGNVPROC glPathStringNV;
+PFNGLPATHPARAMETERINVPROC glPathParameteriNV;
+PFNGLPATHPARAMETERFNVPROC glPathParameterfNV;
+PFNGLSTENCILFILLPATHNVPROC glStencilFillPathNV;
+PFNGLSTENCILSTROKEPATHNVPROC glStencilStrokePathNV;
+PFNGLCOVERFILLPATHNVPROC glCoverFillPathNV;
+PFNGLCOVERSTROKEPATHNVPROC glCoverStrokePathNV;
 
 using namespace GLPG;
 void* GLPGContext::loadGLFunction(const char *name) {
@@ -86,6 +94,14 @@ void GLPGContext::initializeGLFunctionPointers()
     glUniform4f = (PFNGLUNIFORM4FPROC)loadGLFunction("glUniform4f");
     glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)loadGLFunction("glUniformMatrix4fv");
     glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)loadGLFunction("glGenerateMipmap");
+    glPathCommandsNV = (PFNGLPATHCOMMANDSNVPROC)loadGLFunction("glPathCommandsNV");
+    glPathStringNV = (PFNGLPATHSTRINGNVPROC)loadGLFunction("glPathStringNV");
+    glPathParameteriNV = (PFNGLPATHPARAMETERINVPROC)loadGLFunction("glPathParameteriNV");
+    glPathParameterfNV = (PFNGLPATHPARAMETERFNVPROC)loadGLFunction("glPathParameterfNV");
+    glStencilFillPathNV = (PFNGLSTENCILFILLPATHNVPROC)loadGLFunction("glStencilFillPathNV");
+    glStencilStrokePathNV = (PFNGLSTENCILSTROKEPATHNVPROC)loadGLFunction("glStencilStrokePathNV");
+    glCoverFillPathNV = (PFNGLCOVERFILLPATHNVPROC)loadGLFunction("glCoverFillPathNV");
+    glCoverStrokePathNV = (PFNGLCOVERSTROKEPATHNVPROC)loadGLFunction("glCoverStrokePathNV");
 }
 
 bool GLPGContext::initializeGlContext(GLPGWindow &window, uint32_t majorVersion,

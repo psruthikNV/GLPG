@@ -6,11 +6,7 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 #include "GLPGEvent.hpp"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
+
 static bool game_is_running = true;
 using namespace GLPG;
 vec3_f trianglePositions[] = {

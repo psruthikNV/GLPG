@@ -39,6 +39,7 @@ namespace GLPG {
             bool createNativeWindow();
 #ifdef __linux__
             xcb_window_t getNativeHandle() const;
+            xcb_connection_t *getConnection() const;
 #elif defined _WIN32
             HDC getNativeHandle() const;
 #endif
@@ -53,4 +54,9 @@ namespace GLPG {
     {
         return windowHeight;
     }
+#ifdef __linux__
+    inline xcb_connection_t *GLPGWindow::getConnection() const {
+        return xcbConnection;
+    }
+#endif
 }

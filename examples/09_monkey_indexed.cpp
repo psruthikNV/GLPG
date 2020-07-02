@@ -4,10 +4,6 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 using namespace GLPG;
 
 vec3_f trianglePositions[] = {
@@ -64,7 +60,6 @@ int main(int argc, char **argv)
     GLuint fragShaderObj = 0;
     GLuint programObj = 0;
     GLuint modelMatrixLocation = 0;
-    GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
 
@@ -101,7 +96,6 @@ int main(int argc, char **argv)
     std::cout << "Monkey Vertices sizee : " << monkeyVertices.size() << "\n";
     std::cout << "Face Stuff size : " << faceStuff.size() << "\n";
     std::cout << "vertexIndices size : " << faceStuff[0].vertexIndices.size() << "\n";
-    uint32_t counter = 0U;
 
     for (uint32_t i = 0U; i < faceStuff.size(); i++) {
         if (faceStuff[i].vertexIndices.size() == 4) {
@@ -181,6 +175,7 @@ int main(int argc, char **argv)
 
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
+    vec3_f viewMatrix;
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while (1) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -193,18 +188,16 @@ int main(int argc, char **argv)
             modelMatrix = translate(modelMatrix, trianglePositions[i]);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             const float radius = 10.0f;
-            glm::mat4 view = glm::mat4(1.0);
             QueryPerformanceCounter(&timer);
 
             float camX = sin(timer.QuadPart * 0.00000001F) * radius;
             float camZ = cos(timer.QuadPart * 0.00000001F) * radius;
-            view = glm::lookAt(glm::vec3(camX, 0.0, camZ), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
-            glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, &view[0][0]);
+            viewMatrix = lookAt(vec3_f({camX, 0.0, camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
+            glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             //glDrawArrays(GL_TRIANGLES, 0, monkeyVertices.size());
             glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);
         }
 	    gc.swapBuffers();
     }
-    pause();
 }

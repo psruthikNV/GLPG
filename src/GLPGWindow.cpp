@@ -29,18 +29,28 @@ bool GLPGWindow::createNativeXcbWindow()
     if (xcb_connection_has_error(xcbConnection)) {
         std::cout << "Failed to create XCB Connection" << std::endl;
         return false;
+    } else {
+        uint32_t valueMask = XCB_CW_EVENT_MASK;
+        // No documentation exists for xcb_event_mask_t on the web so
+        // including whatever I think is necessary
+        uint32_t valueList[1] = { XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_KEY_RELEASE |
+                                  XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE |
+                                  XCB_EVENT_MASK_POINTER_MOTION | XCB_EVENT_MASK_BUTTON_1_MOTION |
+                                  XCB_EVENT_MASK_BUTTON_2_MOTION | XCB_EVENT_MASK_BUTTON_3_MOTION |
+                                  XCB_EVENT_MASK_BUTTON_4_MOTION | XCB_EVENT_MASK_BUTTON_5_MOTION |
+                                  XCB_EVENT_MASK_BUTTON_MOTION };
+        xcbScreen = xcb_setup_roots_iterator(xcb_get_setup(xcbConnection)).data;
+        xcbWindow = xcb_generate_id(xcbConnection);
+
+        xcb_create_window(xcbConnection, XCB_COPY_FROM_PARENT, xcbWindow,
+                          xcbScreen->root, 0, 0, windowWidth, windowHeight,
+                          10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
+                          xcbScreen->root_visual, valueMask, valueList);
+        xcb_map_window(xcbConnection, xcbWindow);
+        xcb_flush(xcbConnection);
+
+        return true;
     }
-    xcbScreen = xcb_setup_roots_iterator(xcb_get_setup(xcbConnection)).data;
-    xcbWindow = xcb_generate_id(xcbConnection);
-
-    xcb_create_window(xcbConnection, XCB_COPY_FROM_PARENT, xcbWindow,
-                      xcbScreen->root, 0, 0, windowWidth, windowHeight,
-                      10, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-                      xcbScreen->root_visual, 0, NULL);
-    xcb_map_window(xcbConnection, xcbWindow);
-    xcb_flush(xcbConnection);
-
-    return true;
 }
 
 xcb_window_t GLPGWindow::getNativeHandle() const
@@ -64,16 +74,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARA
 	case WM_CLOSE:
 		PostQuitMessage(0);
     break;
-    case WM_KEYDOWN:
-        switch (wParam)
-        {
-            case VK_LEFT:
-                std::cout << "Left Arrow\n";
-                break;
-            default:
-                break;
-        }
-	default:
+    default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
@@ -96,4 +97,5 @@ bool GLPGWindow::createNativeWin32Window()
                            0, 0, 800, 600, 0, 0, hInstance, 0);
     return true;
 }
+
 #endif

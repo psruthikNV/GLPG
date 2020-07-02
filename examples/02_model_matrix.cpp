@@ -30,6 +30,7 @@
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
+
 using namespace GLPG;
 
 // Number of triangles to be drawn
@@ -133,5 +134,4 @@ int main(int argc, char **argv)
     }
 
     gc.swapBuffers();
-    pause();
 }

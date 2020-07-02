@@ -25,10 +25,13 @@ namespace GLPG {
 #ifdef _WIN32
         HWND hWindow;
         MSG message;
+#elif defined __linux__
+        xcb_connection_t *connection;
 #endif
 
         public:
         GLPGEventLoop(void);
+        GLPGEventLoop(GLPGWindow *window);
         GLPGEvent GetEvent(void);
         bool SetActiveCamera(GLPGCamera *camera);
         GLPGCamera& GetActiveCamera();

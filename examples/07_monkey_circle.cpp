@@ -4,6 +4,8 @@
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
+#include <chrono>
+
 using namespace GLPG;
 
 vec3_f trianglePositions[] = {
@@ -82,7 +84,6 @@ const char *fragmentSource =
 
 vec3_f getEyePosition()
 {
-    float radius = 7.0F;
     static float origin =0.0F;
 
     float z = sqrt(9 - (origin * origin));
@@ -107,14 +108,13 @@ int main(int argc, char **argv)
     GLuint fragShaderObj = 0;
     GLuint programObj = 0;
     GLuint modelMatrixLocation = 0;
-    GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
 
     std::vector<VertexIN> monkeyVertices;
     std::vector<FaceIN> faceStuff;
 
-    if (!LoadObjFile("E:\\Code\\GLPG\\assets\\monkey.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("/home/sruthik/repos/GLPG/assets/monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {
@@ -171,7 +171,6 @@ int main(int argc, char **argv)
     mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     mat4x4_f modelMatrix;
     mat4x4_f viewMatrix;
-    SYSTEMTIME sysTime;
 
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
@@ -179,10 +178,13 @@ int main(int argc, char **argv)
     while (1) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
-            //std::cout << "Frame : " << i << "\n";
-            GetSystemTime(&sysTime);
-            //std::cout << "Seconds : " << sysTime.wSecond << "\n";
-            vec3_f eyePos = {(float)(sin(sysTime.wMilliseconds) * 10.0), 0.0F, (float)(cos(sysTime.wMilliseconds) * 10.0)};
+            auto startTime = std::chrono::system_clock::now();
+            float xPos = (float)(sin(startTime.time_since_epoch().count()));
+            float yPos = (float)(cos(startTime.time_since_epoch().count()));
+            auto endTime = std::chrono::system_clock::now();
+            auto deltaTime = endTime.time_since_epoch().count() - startTime.time_since_epoch().count();
+            std::cout << "Duration to find x and y pos : " << deltaTime << "\n";
+            vec3_f eyePos = {(float)(xPos * 10) / deltaTime, 0.0F, (float)(yPos * 10) / deltaTime};
             modelMatrix.identity();
             modelMatrix = translate(modelMatrix, trianglePositions[i]);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
@@ -190,9 +192,8 @@ int main(int argc, char **argv)
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             glDrawArrays(GL_TRIANGLE_STRIP, 0, monkeyVertices.size());
-            Sleep(16.6);
+            //Sleep(16.6);
         }
 	    gc.swapBuffers();
     }
-    pause();
 }

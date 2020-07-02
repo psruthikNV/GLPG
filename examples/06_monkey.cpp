@@ -97,7 +97,7 @@ int main(int argc, char **argv)
     std::vector<VertexIN> monkeyVertices;
     std::vector<FaceIN> faceStuff;
 
-    if (!LoadObjFile("C:\\Users\\Sruthik\\3D Objects\\cube.obj", monkeyVertices, faceStuff)) {
+    if (!LoadObjFile("/home/sruthik/repos/GLPG/assets/monkey.obj", monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";
         return -1;
     } else {

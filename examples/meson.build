@@ -33,22 +33,8 @@ executable('07_monkey_circle', '07_monkey_circle.cpp',
            dependencies : deps,
            link_with : libglpg)
 
-executable('08_monkey_circle', '08_monkey_circle.cpp',
+executable('12_text_rendering', '12_text_rendering.cpp',
            include_directories : glpg_include_path,
            dependencies : deps,
            link_with : libglpg)
 
-executable('09_monkey_indexed', '09_monkey_indexed.cpp',
-           include_directories : glpg_include_path,
-           dependencies : deps,
-           link_with : libglpg)
-
-executable('10_threaded_update', '10_threaded_update.cpp',
-           include_directories : glpg_include_path,
-           dependencies : deps,
-           link_with : libglpg)
-
-executable('11_camera_movement', '11_camera_movement.cpp',
-           include_directories : glpg_include_path,
-           dependencies : deps,
-           link_with : libglpg)

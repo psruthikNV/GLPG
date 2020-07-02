@@ -1,6 +1,5 @@
 #pragma once
 
-#include "GLPGWindow.hpp"
 #ifdef __linux__
 #include <EGL/egl.h>
 #endif
@@ -13,7 +12,7 @@
 #include <gl\wglext.h>
 #endif
 
-
+#include "GLPGWindow.hpp"
 #ifdef _WIN32
 extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
@@ -44,6 +43,14 @@ extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 extern PFNGLUNIFORM4FPROC glUniform4f;
 extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
+extern PFNGLPATHCOMMANDSNVPROC glPathCommandsNV;
+extern PFNGLPATHSTRINGNVPROC glPathStringNV;
+extern PFNGLPATHPARAMETERINVPROC glPathParameteriNV;
+extern PFNGLPATHPARAMETERFNVPROC glPathParameterfNV;
+extern PFNGLSTENCILFILLPATHNVPROC glStencilFillPathNV;
+extern PFNGLSTENCILSTROKEPATHNVPROC glStencilStrokePathNV;
+extern PFNGLCOVERFILLPATHNVPROC glCoverFillPathNV;
+extern PFNGLCOVERSTROKEPATHNVPROC glCoverStrokePathNV;
 
 namespace GLPG {
 

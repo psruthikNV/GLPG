@@ -6,6 +6,7 @@
 #include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
+
 using namespace GLPG;
 
 const float vertexData[] = {

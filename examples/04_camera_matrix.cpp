@@ -144,13 +144,10 @@ int main(int argc, char **argv)
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         glClear(GL_COLOR_BUFFER_BIT);
-
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
         glDrawArrays(GL_TRIANGLES, 0, 3);
-
         context.SwapBuffers();
 
     }
-
 }

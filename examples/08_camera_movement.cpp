@@ -83,7 +83,7 @@ void GLPGRenderLoop()
     std::vector<FaceIN> faceStuff;
 
     // Load the vertices of the monkey obj
-    const char *monkeyPath = "C:\\Users\\Sruthik\\3D Objects\\monkey_neg_z.obj";
+    const char *monkeyPath = "C:\\Users\\psrut\\repos\\GLPG\\assets\\monkey.obj";
 
     if (!LoadObjFile(monkeyPath, monkeyVertices, faceStuff)) {
         std::cout << "Failed to load Vertices\n";

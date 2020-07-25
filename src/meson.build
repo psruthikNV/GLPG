@@ -1,11 +1,13 @@
-test_src = files('GLPGWindow.cpp', 'GLPGContext.cpp', 'GLPGShaderUtils.cpp', 'GLPGEvent.cpp')
+src_files = files('GLPGContext_GL.cpp')
 
 if host_machine.system() == 'linux'
-    deps = [lib_xcb, lib_egl, lib_gl]
+  src_files += files('GLPGWindow_Xcb.cpp', 'GLPGWindowImpl_Xcb.cpp',
+                     'GLPGContextImpl_GL_EGL.cpp', 'GLPGContextImpl_Platform_EGL.cpp',
+                     'GLPGEvent_Xcb.cpp', 'GLPGEventImpl_Xcb.cpp')
 elif host_machine.system() == 'windows'
-    deps = [lib_user32, lib_gl]
+  src_files += files('GLPGWindow_Win32.cpp', 'GLPGWindowImpl_Win32.cpp')
 endif
 
-libglpg = static_library('GLPG', test_src,
+libglpg = static_library('GLPG', src_files,
                          include_directories : glpg_include_path,
-                         dependencies : deps)
+                         dependencies : dependenciesList)

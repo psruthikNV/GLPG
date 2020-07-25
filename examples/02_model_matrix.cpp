@@ -24,13 +24,15 @@
  */
 
 #include <random>
+#include <GL/gl.h>
+#include <GL/glext.h>
 
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
+#include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
-#include "utils/GLPGUtils.hpp"
-#include "GLPGEvent.hpp"
+
 using namespace GLPG;
 
 // Number of triangles to be drawn
@@ -42,7 +44,7 @@ const float vertexData[] = {
     0.0f, 0.5f, 0.0f
 };
 
-const char *vertexSource = 
+const char *vertexShaderSource = 
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
     "uniform mat4 modelMatrix;\n"
@@ -50,7 +52,7 @@ const char *vertexSource =
     "   gl_Position = modelMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
-const char *fragmentSource = 
+const char *fragmentShaderSource = 
     "#version 450 core\n"
     "out vec4 fragColor;\n"
     "void main() {\n"
@@ -60,14 +62,15 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    GLPGWindow win(800, 600);
-    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint vtxShaderObj = 0;
     GLuint fragShaderObj = 0;
     GLuint programObj = 0;
     GLuint modelMatrixLocation;
+    GLPGContext context;
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dist(-1.0, 1.0);
@@ -76,13 +79,26 @@ int main(int argc, char **argv)
         g_numTriangles = atoi(argv[1]);
     }
 
-    if (!win.createNativeWindow()) {
-        std::cout << "Failed to create native window" << std::endl;
+    GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Failed to create GLPGWindow\n";
         return -1;
     }
 
-    if (!gc.initializeGlContext(win, 4, 5)) {
-        std::cout << "Failed to initialize GL Context" << std::endl;
+    if (window->CreateWindow(640, 480)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
+        std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+    if (!context.InitializeContext()) {
+        std::cerr << "Failed to create GL Context\n";
+        return -1;
+    }
+
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
         return -1;
     }
 
@@ -90,21 +106,20 @@ int main(int argc, char **argv)
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
     programObj = glCreateProgram();
 
-    if (!compileShader(vtxShaderObj, vertexSource)) {
-        std::cout << "Failed to compile GLSL Vertex Shader" << std::endl;
+    if (!GLPG::compileShader(vtxShaderObj, vertexShaderSource)) {
+        std::cout << "Vertex Shader Compilation Failed" << std::endl;
         return -1;
     }
-
-    if (!compileShader(fragShaderObj, fragmentSource)) {
-        std::cout << "Failed to compile GLSL Fragment Shader" << std::endl;
+    if (!GLPG::compileShader(fragShaderObj, fragmentShaderSource)) {
+        std::cout << "Fragment Shader Compilation Failed" << std::endl;
         return -1;
     }
 
     glAttachShader(programObj, vtxShaderObj);
     glAttachShader(programObj, fragShaderObj);
 
-    if (!linkShaders(programObj)) {
-        std::cout << "Failed to link GLSL Shaders" << std::endl;
+    if (!GLPG::linkShaders(programObj)) {
+        std::cout << "Failed to link Shaders" << std::endl;
         return -1;
     }
 
@@ -121,9 +136,7 @@ int main(int argc, char **argv)
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    GLPGEventLoop eventLoop;
-    GLPGEvent event;
-    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         for (uint32_t i = 0; i < g_numTriangles; i++) {
             mat4x4_f modelMatrix;
             // For each triangle being drawn we generate a random translation vector
@@ -133,8 +146,9 @@ int main(int argc, char **argv)
                                       dist(gen)};
             modelMatrix = translate(modelMatrix, translateVector);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
+            glClear(GL_COLOR_BUFFER_BIT);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
-        gc.swapBuffers();
+        context.SwapBuffers();
     }
 }

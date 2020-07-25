@@ -4,19 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef __linux__
-#include <unistd.h>
-#endif
-
 namespace GLPG {
-    void pause()
-    {
-#ifdef __linux__
-        sleep(5);
-#elif defined _WIN32
-        system("pause");
-#endif
-    }
 
 struct VertexIN {
     float pos[3];
@@ -38,7 +26,6 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx, std::vector
 
     std::fstream objFileStream(filePath, std::ios::in);
     if (objFileStream.is_open()) {
-        uint32_t faceId = 0U;
         for (std::string line; std::getline(objFileStream, line);) {
             std::istringstream in(line);
             std::string type;
@@ -74,6 +61,7 @@ bool LoadObjFile(const char* filePath, std::vector<VertexIN>& v_vtx, std::vector
             }
         }
     } else {
+        std::cerr << "Failed to open obj file\n";
         return false;
     }
     return true;

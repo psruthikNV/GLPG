@@ -1,9 +1,11 @@
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
+#include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
-#include "utils/GLPGUtils.hpp"
-#include "GLPGEvent.hpp"
 
 using namespace GLPG;
 
@@ -64,7 +66,7 @@ const float vertexData[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
 
-const char *vertexSource = 
+const char *vertexShaderSource = 
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
     "uniform mat4 modelMatrix;\n"
@@ -74,7 +76,7 @@ const char *vertexSource =
     "   gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(vertexPosition, 1.0);\n"
     "}\0";
 
-const char *fragmentSource = 
+const char *fragmentShaderSource = 
     "#version 450 core\n"
     "out vec4 fragColor;\n"
     "void main() {\n"
@@ -83,10 +85,6 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    // GLPG resources
-    GLPGWindow win(800, 600);
-    GLPGContext gc;
-
     // GL resources
     GLuint VBO;
     GLuint VAO;
@@ -97,17 +95,30 @@ int main(int argc, char **argv)
     GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
+    GLPGContext context;
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
 
-    // Transformation resources
-    
-
-    if (!win.createNativeWindow()) {
-        std::cout << "Failed to create native window" << std::endl;
+    GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Failed to create GLPGWindow\n";
         return -1;
     }
 
-    if (!gc.initializeGlContext(win, 4, 5)) {
-        std::cout << "Failed to initialize GL Context" << std::endl;
+    if (window->CreateWindow(640, 480)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
+        std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+    if (!context.InitializeContext()) {
+        std::cerr << "Failed to create GL Context\n";
+        return -1;
+    }
+
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
         return -1;
     }
 
@@ -115,24 +126,23 @@ int main(int argc, char **argv)
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
     programObj = glCreateProgram();
 
-    if (!compileShader(vtxShaderObj, vertexSource)) {
-        std::cout << "Failed to compile GLSL Vertex Shader" << std::endl;
+    if (!GLPG::compileShader(vtxShaderObj, vertexShaderSource)) {
+        std::cout << "Vertex Shader Compilation Failed" << std::endl;
         return -1;
     }
-
-    if (!compileShader(fragShaderObj, fragmentSource)) {
-        std::cout << "Failed to compile GLSL Fragment Shader" << std::endl;
+    if (!GLPG::compileShader(fragShaderObj, fragmentShaderSource)) {
+        std::cout << "Fragment Shader Compilation Failed" << std::endl;
         return -1;
     }
 
     glAttachShader(programObj, vtxShaderObj);
     glAttachShader(programObj, fragShaderObj);
 
-    if (!linkShaders(programObj)) {
-        std::cout << "Failed to link GLSL Shaders" << std::endl;
+    if (!GLPG::linkShaders(programObj)) {
+        std::cout << "Failed to link Shaders" << std::endl;
         return -1;
     }
-
+ 
     glUseProgram(programObj);
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
@@ -157,9 +167,7 @@ int main(int argc, char **argv)
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    GLPGEventLoop eventLoop;
-    GLPGEvent event;
-    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape){
         eyePosition = {0.0F, 0.0F, 3.0F};
         viewMatrix = lookAt(eyePosition, viewVector, upVector);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -171,6 +179,6 @@ int main(int argc, char **argv)
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-	    gc.swapBuffers();
+	    context.SwapBuffers();
     }
 }

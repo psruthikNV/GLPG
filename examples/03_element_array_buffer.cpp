@@ -1,9 +1,12 @@
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
+#include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
-#include "utils/GLPGUtils.hpp"
-#include "GLPGEvent.hpp"
+
 using namespace GLPG;
 
 const float vertexData[] = {
@@ -18,14 +21,14 @@ const int indices[] = {
 	2, 3, 0
 };
 
-const char *vertexSource =
+const char *vertexShaderSource =
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(vertexPosition, 1.0);\n"
     "}\0";
-const char *fragmentSource = 
+const char *fragmentShaderSource = 
     "#version 450 core\n"
     "out vec4 fragmentColor;\n"
     "void main()\n"
@@ -35,22 +38,36 @@ const char *fragmentSource =
 
 int main ()
 {
-	GLPGWindow win(800, 600);
-	GLPGContext gc;
 	GLuint VAO;
 	GLuint VBO;
 	GLuint EBO;
 	GLuint vtxShaderObj;
 	GLuint fragShaderObj;
 	GLuint programObj;
+    GLPGContext context;
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
 
-	if (!win.createNativeWindow()) {
-        std::cout << "Failed to create native window" << std::endl;
+    GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Failed to create GLPGWindow\n";
         return -1;
     }
 
-    if (!gc.initializeGlContext(win, 4, 5)) {
-        std::cout << "Failed to initialize GL Context" << std::endl;
+    if (window->CreateWindow(640, 480)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
+        std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+    if (!context.InitializeContext()) {
+        std::cerr << "Failed to create GL Context\n";
+        return -1;
+    }
+
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
         return -1;
     }
 
@@ -58,21 +75,24 @@ int main ()
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
     programObj = glCreateProgram();
 
-    if (!compileShader(vtxShaderObj, vertexSource)) {
-        std::cout << "Failed to compile GLSL Vertex Shader" << std::endl;
+    vtxShaderObj = glCreateShader(GL_VERTEX_SHADER);
+    fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
+    programObj = glCreateProgram();
+
+    if (!GLPG::compileShader(vtxShaderObj, vertexShaderSource)) {
+        std::cout << "Vertex Shader Compilation Failed" << std::endl;
         return -1;
     }
-
-    if (!compileShader(fragShaderObj, fragmentSource)) {
-        std::cout << "Failed to compile GLSL Fragment Shader" << std::endl;
+    if (!GLPG::compileShader(fragShaderObj, fragmentShaderSource)) {
+        std::cout << "Fragment Shader Compilation Failed" << std::endl;
         return -1;
     }
 
     glAttachShader(programObj, vtxShaderObj);
     glAttachShader(programObj, fragShaderObj);
 
-    if (!linkShaders(programObj)) {
-        std::cout << "Failed to link GLSL Shaders" << std::endl;
+    if (!GLPG::linkShaders(programObj)) {
+        std::cout << "Failed to link Shaders" << std::endl;
         return -1;
     }
 
@@ -88,12 +108,10 @@ int main ()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    GLPGEventLoop eventLoop;
-    GLPGEvent event;
-    while((event = eventLoop.GetEvent()) != GLPGEvent::WindowClose) {
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         glClear(GL_COLOR_BUFFER_BIT);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        gc.swapBuffers();
+        context.SwapBuffers();
     }
     return 0;
 }

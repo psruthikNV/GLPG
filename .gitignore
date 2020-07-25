@@ -1,6 +1,10 @@
 # Ignore local Meson build dir
 build/
 
+# Ignore Doxygen output
+docs/html
+docs/latex
+
 # Ignore VsCode files
 .vscode/
 

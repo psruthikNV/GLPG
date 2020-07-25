@@ -1,62 +1,22 @@
 #pragma once
 
-#include <iostream>
+#include "internal/GLPGWindowImpl.hpp"
 
-#ifdef __linux__
-#include <xcb/xcb.h>
-#elif defined _WIN32
-#include <Windows.h>
-#endif
 namespace GLPG {
-
-    class GLPGWindow
-    {
-        private:
-            uint32_t windowWidth;
-            uint32_t windowHeight;
-#ifdef __linux__
-            xcb_connection_t *xcbConnection;
-            xcb_screen_t *xcbScreen;
-            xcb_window_t xcbWindow;
-
-            bool createNativeXcbWindow();
-#elif defined _WIN32
-            HWND hWindow;
-            HINSTANCE hInstance;
-            WNDCLASS wc = {};
-
-            bool createNativeWin32Window();
-#endif
+    class GLPGWindow {
         public:
-            /* Constructor */
-            GLPGWindow(uint32_t, uint32_t);
-
-            /* Getters */
-            inline uint32_t getWindowWidth() const;
-            inline uint32_t getWindowHeight() const;
-
-            /* Functions */
-            bool createNativeWindow();
-#ifdef __linux__
-            xcb_window_t getNativeHandle() const;
-            xcb_connection_t *getConnection() const;
-#elif defined _WIN32
-            HDC getNativeHandle() const;
-#endif
+            static GLPGWindow* GetInstance();
+            static GLPGWindowImpl* GetImplInstance();
+            bool CreateWindow(uint32_t width, uint32_t height) const;
+            uint32_t GetWindowWidth() const;
+            uint32_t GetWindowHeight() const;
+            ~GLPGWindow();
+        protected:
+            GLPGWindow();
+        private:
+            static GLPGWindowImpl* _windowImpl;
+            static GLPGWindow* _instance;
     };
 
-    inline uint32_t GLPGWindow::getWindowWidth() const
-    {
-        return windowWidth;
-    }
+} // namespace GLPG
 
-    inline uint32_t GLPGWindow::getWindowHeight() const
-    {
-        return windowHeight;
-    }
-#ifdef __linux__
-    inline xcb_connection_t *GLPGWindow::getConnection() const {
-        return xcbConnection;
-    }
-#endif
-}

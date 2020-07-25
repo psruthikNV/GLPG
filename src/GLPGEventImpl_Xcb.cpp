@@ -1,46 +1,58 @@
 #include "GLPGEvent.hpp"
+#include "GLPGWindow.hpp"
+#include "internal/GLPGEventImpl_Xcb.hpp"
 
 namespace GLPG {
-
-    //TODO: Can this ctor be removed?
-    GLPGEventLoop::GLPGEventLoop() {
-        loopInited = true;
-        loopTerminate = false;
-        activeCamera = nullptr;
+    GLPGEventImpl_Xcb::GLPGEventImpl_Xcb() {
+        connection = nullptr;
+        xkbCtx = nullptr;
+        keymap = nullptr;
+        state = nullptr;
+    }
+    GLPGEventImpl_Xcb::~GLPGEventImpl_Xcb() {
+        //TODO
     }
 
-    GLPGEventLoop::GLPGEventLoop(GLPGWindow *window) {
-#ifdef __linux__
-        connection = window->getConnection();
+    bool GLPGEventImpl_Xcb::CreateEventLoopImpl() {
+        GLPGWindowImpl_Xcb* windowImpl = dynamic_cast<GLPGWindowImpl_Xcb*>(GLPG::GLPGWindow::GetImplInstance());
+        connection = windowImpl->GetXcbConnectionHandle();
+        if (!connection) {
+            std::cout << "GLPG ERROR: Internal error\n";
+            return false;
+        }
         if (!xkb_x11_setup_xkb_extension(connection, XKB_X11_MIN_MAJOR_XKB_VERSION,
                                          XKB_X11_MIN_MINOR_XKB_VERSION,
                                          XKB_X11_SETUP_XKB_EXTENSION_NO_FLAGS,
                                          NULL, NULL, &first_xkb_event, NULL)) {
             std::cerr << "Failed to setup XKB extensions\n";
+            return false;
         }
 
         if (!(xkbCtx = xkb_context_new(XKB_CONTEXT_NO_FLAGS))) {
             std::cerr << "Failed to create new Xkb context\n";
+            return false;
         }
 
         kb_device_id = xkb_x11_get_core_keyboard_device_id(connection);
         if (kb_device_id == -1) {
             std::cerr << "Failed to find keyboard device\n";
-        } else {
-            std::cerr << "Keyboard device id: " << kb_device_id << "\n";
+            return false;
         }
+
         struct xkb_keymap *new_keymap;
         new_keymap = xkb_x11_keymap_new_from_device(xkbCtx, connection,
                                                     kb_device_id,
                                                     XKB_KEYMAP_COMPILE_NO_FLAGS);
         if (!new_keymap) {
             std::cerr << "Failed to update keymap\n";
+            return false;
         }
 
         struct xkb_state *new_state = xkb_x11_state_new_from_device(new_keymap, connection,
                                                                     kb_device_id);
         if (!new_state) {
             std::cerr << "Failed to update state\n";
+            return false;
         }
 
         if (keymap) {
@@ -55,65 +67,15 @@ namespace GLPG {
         }
         keymap = new_keymap;
         state = new_state;
-                
-#endif
-        loopInited = true;
-        loopTerminate = false;
-        activeCamera = nullptr;
+        return true;
     }
 
-    GLPGEvent GLPGEventLoop::GetEvent() {
+    GLPGEvent GLPGEventImpl_Xcb::GetEventImpl() {
         GLPGEvent rv = GLPGEvent::WindowCreate;
-#ifdef _WIN32
-        if (PeekMessage(&message, NULL, 0, 0, PM_REMOVE)) {
-            switch (message.message)
-            {
-                case WM_QUIT:
-                    rv = GLPGEvent::WindowClose;
-                    break;
-                case WM_KEYDOWN:
-                    switch (message.wParam)
-                    {
-                        case VK_LEFT:
-                            rv = GLPGEvent::LeftArrow;
-                            break;
-                        case VK_RIGHT:
-                            rv = GLPGEvent::RightArrow;
-                            break;
-                        case VK_UP:
-                            rv = GLPGEvent::UpArrow;
-                            break;
-                        case VK_DOWN:
-                            rv = GLPGEvent::DownArrow;
-                            break;
-                        case 0x57:
-                            rv = GLPGEvent::Key_W;
-                            break;
-                        case 0x41:
-                            rv = GLPGEvent::Key_A;
-                            break;
-                        case 0x44:
-                            rv = GLPGEvent::Key_D;
-                            break;
-                        case 0x53:
-                            rv = GLPGEvent::Key_S;
-                            break;
-                        default: // Do nothing
-                            break;
-                    }
-                default: // Do nothing
-                    break;
-            }
-            TranslateMessage(&message);
-            DispatchMessage(&message);
-        }
-#elif defined __linux__
         if (xcb_generic_event_t *event;
             event = xcb_poll_for_event (connection)) {
             switch (event->response_type & ~0x80)
             {
-                //TODO: Why the fuck is there no documentation on this?
-                // I need to get xkbcommon for this shit? The fuck Linux?!
                 case XCB_BUTTON_PRESS:
                     {
                         xcb_button_press_event_t *press = (xcb_button_press_event_t *)event;
@@ -149,7 +111,6 @@ namespace GLPG {
                                 rv = GLPGEvent::Key_Pause;
                                 break;
                             case XKB_KEY_Return:
-                                std::cout << "Return\n";
                                 rv = GLPGEvent::Key_Return;
                                 break;
                             case XKB_KEY_Clear:
@@ -178,33 +139,11 @@ namespace GLPG {
                             case XKB_KEY_d:
                                 rv = GLPGEvent::Key_D;
                                 break;
-
                         }
-                        if (xkb_state_key_get_one_sym(state, press->detail) == XKB_KEY_Escape) { 
-                            std::cout << "Escape\n";
-                        }
-                        break;
                     }
-                default:
-                    std::cout << "Unhandled event recieved\n";
             }
         }
-#endif
         return rv;
     }
 
-    bool GLPGEventLoop::SetActiveCamera(GLPGCamera *camera)
-    {
-        if (camera) {
-            activeCamera = camera;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    GLPGCamera& GLPGEventLoop::GetActiveCamera()
-    {
-        return *activeCamera;
-    }
-};
+} // namespace GLPG

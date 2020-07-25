@@ -1,3 +1,7 @@
+executable('test_glpg', 'test.cpp',
+           include_directories : glpg_include_path,
+           link_with : libglpg)
+
 executable('01_hello_triangle', '01_hello_triangle.cpp',
            include_directories : glpg_include_path,
            link_with : libglpg)
@@ -18,15 +22,6 @@ executable('05_projection_matrix', '05_projection_matrix.cpp',
            include_directories : glpg_include_path,
            link_with : libglpg)
 
-executable('06_monkey', '06_monkey.cpp',
+executable('06_monkey_indexed', '06_monkey_indexed.cpp',
            include_directories : glpg_include_path,
            link_with : libglpg)
-
-executable('07_monkey_circle', '07_monkey_circle.cpp',
-           include_directories : glpg_include_path,
-           link_with : libglpg)
-
-executable('12_text_rendering', '12_text_rendering.cpp',
-           include_directories : glpg_include_path,
-           link_with : libglpg)
-

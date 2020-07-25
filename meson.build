@@ -1,5 +1,5 @@
 project('glpg', 'cpp',
-        version : '0.0.1',
+        version : '0.0.2',
         default_options : 'cpp_std=c++17')
 
 glpg_include_path = include_directories('./include')
@@ -20,7 +20,6 @@ endif
 
 subdir('src')
 subdir('examples')
-
 if buildTests == true
     subdir('tests')
 endif

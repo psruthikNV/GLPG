@@ -1,15 +1,16 @@
+#include <GL/gl.h>
+#include <GL/glext.h>
+
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
+#include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 #include "math/GLPGMath.hpp"
 #include "utils/GLPGUtils.hpp"
 
 using namespace GLPG;
 
-vec3_f trianglePositions[] = {
-  vec3_f({0.0f,  0.0f,  0.0f}),
-};
-const char *vertexSource = 
+const char *vertexShaderSource = 
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
     "flat out int glpg_vertexID;\n"
@@ -21,7 +22,7 @@ const char *vertexSource =
     "   glpg_vertexID = gl_VertexID;\n"
     "}\0";
 
-const char *fragmentSource = 
+const char *fragmentShaderSource = 
     "#version 450 core\n"
     "out vec4 fragColor;\n"
     "flat in int glpg_vertexID;\n"
@@ -51,8 +52,6 @@ const char *fragmentSource =
 
 int main(int argc, char **argv)
 {
-    GLPGWindow win(800, 600);
-    GLPGContext gc;
     GLuint VBO;
     GLuint VAO;
     GLuint EBO;
@@ -62,9 +61,12 @@ int main(int argc, char **argv)
     GLuint modelMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
     GLuint projectionMatrixLocation = 0;
-
+    GLPGContext context;
+    GLPGEventLoop eventLoop;
+    GLPGEvent event;
     std::vector<VertexIN> monkeyVertices;
     std::vector<FaceIN> faceStuff;
+
     uint32_t indices[] = {
         1, 2, 4,
         2, 4, 3,
@@ -114,13 +116,26 @@ int main(int argc, char **argv)
 
     std::cout << "Size of vtxIdx : " << vtxIdx.size() << "\n";
 
-    if (!win.createNativeWindow()) {
-        std::cout << "Failed to create native window" << std::endl;
+    GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Failed to create GLPGWindow\n";
         return -1;
     }
 
-    if (!gc.initializeGlContext(win, 4, 5)) {
-        std::cout << "Failed to initialize GL Context" << std::endl;
+    if (window->CreateWindow(640, 480)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
+        std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+    if (!context.InitializeContext()) {
+        std::cerr << "Failed to create GL Context\n";
+        return -1;
+    }
+
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
         return -1;
     }
 
@@ -128,21 +143,20 @@ int main(int argc, char **argv)
     fragShaderObj = glCreateShader(GL_FRAGMENT_SHADER);
     programObj = glCreateProgram();
 
-    if (!compileShader(vtxShaderObj, vertexSource)) {
-        std::cout << "Failed to compile GLSL Vertex Shader" << std::endl;
+    if (!GLPG::compileShader(vtxShaderObj, vertexShaderSource)) {
+        std::cout << "Vertex Shader Compilation Failed" << std::endl;
         return -1;
     }
-
-    if (!compileShader(fragShaderObj, fragmentSource)) {
-        std::cout << "Failed to compile GLSL Fragment Shader" << std::endl;
+    if (!GLPG::compileShader(fragShaderObj, fragmentShaderSource)) {
+        std::cout << "Fragment Shader Compilation Failed" << std::endl;
         return -1;
     }
 
     glAttachShader(programObj, vtxShaderObj);
     glAttachShader(programObj, fragShaderObj);
 
-    if (!linkShaders(programObj)) {
-        std::cout << "Failed to link GLSL Shaders" << std::endl;
+    if (!GLPG::linkShaders(programObj)) {
+        std::cout << "Failed to link Shaders" << std::endl;
         return -1;
     }
 
@@ -169,35 +183,22 @@ int main(int argc, char **argv)
     mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 0.1f, 100.0f);
     mat4x4_f modelMatrix;
     mat4x4_f viewMatrix;
-    SYSTEMTIME sysTime;
-    LARGE_INTEGER timer;
-    _LARGE_INTEGER test;
 
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAt(eyePosition, viewVector, upVector);
-    vec3_f viewMatrix;
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    while (1) {
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 1; i++) {
-            //std::cout << "Frame : " << i << "\n";
-            GetSystemTime(&sysTime);
-            //std::cout << "Seconds : " << sysTime.wSecond << "\n";
-            vec3_f eyePos = {(float)(sin(sysTime.wMilliseconds) * 10.0), 0.0F, (float)(cos(sysTime.wMilliseconds) * 10.0)};
             modelMatrix.identity();
-            modelMatrix = translate(modelMatrix, trianglePositions[i]);
             glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
             const float radius = 10.0f;
-            QueryPerformanceCounter(&timer);
 
-            float camX = sin(timer.QuadPart * 0.00000001F) * radius;
-            float camZ = cos(timer.QuadPart * 0.00000001F) * radius;
-            viewMatrix = lookAt(vec3_f({camX, 0.0, camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             //glDrawArrays(GL_TRIANGLES, 0, monkeyVertices.size());
             glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);
         }
-	    gc.swapBuffers();
+        context.SwapBuffers();
     }
 }

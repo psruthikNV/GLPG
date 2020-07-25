@@ -1,7 +1,3 @@
-executable('test_glpg', 'test.cpp',
-           include_directories : glpg_include_path,
-           link_with : libglpg)
-
 executable('01_hello_triangle', '01_hello_triangle.cpp',
            include_directories : glpg_include_path,
            link_with : libglpg)

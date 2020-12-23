@@ -45,7 +45,6 @@ namespace GLPG {
                             rv = GLPGEvent::Key_W;
                             break;
                     }
-                case 
             }
         }
         return rv;

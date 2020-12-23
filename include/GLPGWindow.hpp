@@ -1,6 +1,7 @@
 #pragma once
 
 #include "internal/GLPGWindowImpl.hpp"
+#undef CreateWindow
 
 namespace GLPG {
     class GLPGWindow {

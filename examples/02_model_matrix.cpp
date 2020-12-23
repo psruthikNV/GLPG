@@ -23,6 +23,10 @@
  * up getting drawn.
  */
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <random>
 #include <GL/gl.h>
 #include <GL/glext.h>

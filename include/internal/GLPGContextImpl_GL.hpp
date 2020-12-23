@@ -1,5 +1,8 @@
 #pragma once
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include "internal/GLPGContextImpl.hpp"
@@ -51,6 +54,6 @@ namespace GLPG {
                 return platformImpl->PlatformSwapBuffers();
             }
         private:
-            GLPGContextImpl_Platform *platformImpl;
+            GLPGContextImpl_Platform *platformImpl = nullptr;
     };
 } // namespace GLPG

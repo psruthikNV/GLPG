@@ -5,7 +5,9 @@ if host_machine.system() == 'linux'
                      'GLPGContextImpl_GL_EGL.cpp', 'GLPGContextImpl_Platform_EGL.cpp',
                      'GLPGEvent_Xcb.cpp', 'GLPGEventImpl_Xcb.cpp')
 elif host_machine.system() == 'windows'
-  src_files += files('GLPGWindow_Win32.cpp', 'GLPGWindowImpl_Win32.cpp')
+  src_files += files('GLPGWindow_Win32.cpp', 'GLPGWindowImpl_Win32.cpp',
+                     'GLPGContextImpl_GL_WGL.cpp', 'GLPGContextImpl_Platform_WGL.cpp',
+                     'GLPGEvent_Win32.cpp', 'GLPGEventImpl_Win32.cpp')
 endif
 
 libglpg = static_library('GLPG', src_files,

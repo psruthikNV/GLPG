@@ -125,7 +125,6 @@ namespace GLPG {
                             case XKB_KEY_W:
                             case XKB_KEY_w:
                                 rv = GLPGEvent::Key_W;
-                                std::cout << "W\n";
                                 break;
                             case XKB_KEY_A:
                             case XKB_KEY_a:

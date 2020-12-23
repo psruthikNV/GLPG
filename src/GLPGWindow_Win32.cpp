@@ -1,8 +1,10 @@
 #include "GLPGWindow.hpp"
 #include "internal/GLPGWindowImpl_Win32.hpp"
+#undef CreateWindow
 
-GLPGWindow* GLPGWindow::_instance = nullptr;
 namespace GLPG {
+    GLPGWindow* GLPGWindow::_instance = nullptr;
+    GLPGWindowImpl* GLPGWindow::_windowImpl = nullptr;
 
     GLPGWindow::GLPGWindow() {
         if (!_windowImpl) {
@@ -30,16 +32,16 @@ namespace GLPG {
         return _windowImpl;
     }
 
-    bool GLPGWindow::CreateWindow(uint32_t width, uint32_t height) {
-        return windowImpl->CreateWindowImpl(width, height);
+    bool GLPGWindow::CreateWindow(uint32_t width, uint32_t height) const {
+        return _windowImpl->CreateWindowImpl(width, height);
     }
 
-    uint32_t GLPGWindow::GetWindowWidth() {
-        return windowImpl->GetWidthImpl();
+    uint32_t GLPGWindow::GetWindowWidth() const {
+        return _windowImpl->GetWidthImpl();
     }
 
-    uint32_t GLPGWindow::GetWindowHeight() {
-        return windowImpl->GetHeightImpl();
+    uint32_t GLPGWindow::GetWindowHeight() const {
+        return _windowImpl->GetHeightImpl();
     }
 
 } // namespace GLPG

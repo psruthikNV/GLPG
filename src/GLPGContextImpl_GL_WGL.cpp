@@ -6,5 +6,6 @@ namespace GLPG {
         if (platformImpl == nullptr) {
             platformImpl = new GLPGContextImpl_Platform_WGL;
         }
+        return platformImpl->InitializeGLPlatformContext();
     }
 } // namespace GLPG

@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include "GLPGWindow.hpp"
 #include "GLPGContext.hpp"
 #include "utils/GLPGShaderUtils.hpp"

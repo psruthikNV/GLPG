@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 // Platform specific code must
 // be implemented as a concrete
 // sub class of this abstract class

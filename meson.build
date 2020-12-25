@@ -23,3 +23,6 @@ subdir('examples')
 if buildTests == true
     subdir('tests')
 endif
+if host_machine.system() == 'windows'
+  subdir('d3d11')
+endif

@@ -14,6 +14,7 @@ namespace GLPG {
             uint32_t GetHeightImpl() override final;
             xcb_window_t& GetXcbWindowHandle();
             xcb_connection_t* GetXcbConnectionHandle();
+            void* GetWindowHandle() ;
         private:
             xcb_connection_t *xcbConnection;
             xcb_screen_t *xcbScreen;

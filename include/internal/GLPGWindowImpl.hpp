@@ -11,5 +11,6 @@ namespace GLPG {
             virtual uint32_t GetWidthImpl() = 0;
             virtual uint32_t GetHeightImpl() = 0;
             virtual ~GLPGWindowImpl() {} ;
+            virtual void* GetWindowHandle() = 0;
     };
 } // namespace GLPG

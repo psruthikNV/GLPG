@@ -11,6 +11,7 @@ namespace GLPG {
             bool CreateWindow(uint32_t width, uint32_t height) const;
             uint32_t GetWindowWidth() const;
             uint32_t GetWindowHeight() const;
+            void* GetWindowHandle();
             ~GLPGWindow();
         protected:
             GLPGWindow();

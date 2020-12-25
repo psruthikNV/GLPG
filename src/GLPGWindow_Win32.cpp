@@ -44,4 +44,8 @@ namespace GLPG {
         return _windowImpl->GetHeightImpl();
     }
 
+    void* GLPGWindow::GetWindowHandle() {
+        return _windowImpl->GetWindowHandle();
+    }
+
 } // namespace GLPG

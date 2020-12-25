@@ -1,50 +1,17 @@
 #include <iostream>
 #include <vector>
 #include <random>
+#include <fstream>
 
-#include <Windows.h>
+#include "../include/GLPGWindow.hpp"
+#include "../include/GLPGEvent.hpp"
+
 #include <d3d11.h>
 #include <dxgi1_2.h>
 #include <d3dcompiler.h>
+#undef CreateWindow // We require this undef since GLPG's CreateWindow collides with Win32's CreateWindow macro
 
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam,
-                            LPARAM lParam);
 
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam,
-                            LPARAM lParam) {
-
-    switch (message) {
-        case WM_PAINT:
-            return 0;
-    }
-
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-HWND CreateWin32Window() {
-
-    int a;
-    int b;
-    WNDCLASSEX wndClass = { 0 };
-
-    wndClass.cbSize = sizeof(WNDCLASSEX);
-    wndClass.style = CS_HREDRAW | CS_VREDRAW;
-    wndClass.lpfnWndProc = WindowProc;
-    wndClass.hInstance = GetModuleHandle(NULL);
-    wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndClass.lpszClassName = "D3d11 Window";
-
-    ATOM ret = RegisterClassEx(&wndClass);
-
-    RECT windowRect = { 0, 0, 1366, 768 };
-    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
-
-    return (CreateWindowA(wndClass.lpszClassName, "D3d11 101",
-                          WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-                          windowRect.right - windowRect.left,
-                          windowRect.bottom - windowRect.top, nullptr, nullptr,
-                          wndClass.hInstance, nullptr));
-}
 template <typename T>
 class counter {
 public:
@@ -75,20 +42,32 @@ using counter_f = counter<float>;
 int main() {
 
     HRESULT ret;
-    HWND hWindow;
     uint32_t idx = 0U;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dist(0.0, 1.0);
+    GLPG::GLPGEventLoop eventLoop;
+    GLPG::GLPGEvent event;
 
-    hWindow = CreateWin32Window();
+    GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Failed to create GLPGWindow\n";
+        return -1;
+    }
 
-    if (!hWindow) {
+    if (window->CreateWindow(640, 480)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
         std::cout << "Failed to create native window\n";
         return -1;
-    } else {
-        ShowWindow(hWindow, SW_SHOWNORMAL);
     }
+
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
+        return -1;
+    }
+
+    HWND *hWindow = reinterpret_cast<HWND *>(window->GetWindowHandle());
 
     IDXGIFactory* pdxgiFactory = nullptr;
     ret = CreateDXGIFactory(__uuidof(IDXGIFactory),
@@ -170,18 +149,14 @@ int main() {
     if (!pdxgiFactory2) {
         std::cout << "Failed to get pdxgifactory 2\n";
         return -1;
-    } else {
-        std::cout << "Got pdxgi factory 2\n";
     }
 
     IDXGISwapChain1* pSwapchain = nullptr;
 
-    ret = pdxgiFactory2->CreateSwapChainForHwnd(pD3d11device, hWindow, &swapchainDesc, NULL, NULL, &pSwapchain);
+    ret = pdxgiFactory2->CreateSwapChainForHwnd(pD3d11device, *hWindow, &swapchainDesc, NULL, NULL, &pSwapchain);
     if (ret != S_OK) {
         std::cout << "Swapchain creation failed due to : " << ret << "\n";
         return -1;
-    } else {
-        std::cout << "Created Swapchain \n";
     }
     
     ID3D11Texture2D* pbackBuffer;
@@ -190,8 +165,6 @@ int main() {
         std::cout << "Failed to get back buffer\n";
         std::cout << "Err : " << ret << "\n";
         return -1;
-    } else {
-        std::cout << "Got back buffer\n";
     }
 
     ID3D11RenderTargetView* pRenderTargetView = nullptr;
@@ -200,8 +173,6 @@ int main() {
         std::cout << "Failed to create render target view\n";
         std::cout << "Err : " << ret << "\n";
         return -1;
-    } else {
-        std::cout << "Created Render target view\n";
     }
 
     pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
@@ -216,35 +187,145 @@ int main() {
     // 1. Clear color
     uint32_t numFramesRendered = 0U;
     uint32_t maxRenderedFrames = 120U;
-    while (numFramesRendered <= maxRenderedFrames) {
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         colors[0] = red.operator++();
         colors[1] = green.operator++();
         colors[2] = blue.operator++();
         pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
         pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
         pSwapchain->Present(1, 0);
-        ++numFramesRendered;
     }
 
-    // 2. Hello triangle
+    // 2. Basic triangle
 
-    LPCWSTR srcFilePath = L"C:/repos/d3d11_101/vtxShader.hlsl";
-    LPCSTR shaderTarget = "vs_5_0";
-    ID3DBlob* shaderBlob = nullptr;
-    ID3DBlob* errorBlob = nullptr;
-    std::cout << "Compiling Vertex Shader\n";
-    ret = D3DCompileFromFile(srcFilePath, NULL, NULL, "main", NULL, 0, 0, &shaderBlob, &errorBlob);
-    if (ret != S_OK) {
-        if (ret == D3D11_ERROR_FILE_NOT_FOUND) {
-            std::cout << " File not found\n";
-        }
-        std::cout << "Failed to compile VS\n" << std::hex << ret << "\n";
-        if (errorBlob) {
-            std::cout << "Error : " << (char*)errorBlob->GetBufferPointer()<< "\n";
-        } else {
-            std::cout << "No error blob\n";
-        }
+    // Load compiled Vertex shader binary
+    char *data;
+    char *psData;
+    const char *compiledVSPath = "C:/repos/GLPG/d3d11/vtxShader";
+    const char *compiledPSPath = "C:/repos/GLPG/d3d11/pixelShader";
+    std::fstream fs;
+    std::streampos size;
+    std::streampos psSize;
+    ID3D11VertexShader *ppVertexShader;
+    ID3D11PixelShader *ppPixelShader;
+    fs.open(compiledVSPath, std::ios::in | std::ios::binary | std::ios::ate);
+
+    if (!fs.is_open()) {
+        std::cerr << "Failed to open vso file\n";
     } else {
-        std::cout << "Compiled VS\n";
+        size = fs.tellg();
+        data = new char[size];
+        fs.seekg(0, std::ios::beg);
+        fs.read((char *)(data), size);
+        fs.close();
+    }
+
+    fs.open(compiledPSPath, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!fs.is_open()) {
+        std::cerr << "Failed to open vso file\n";
+    } else {
+        psSize = fs.tellg();
+        psData = new char[psSize];
+        fs.seekg(0, std::ios::beg);
+        fs.read((char *)(psData), psSize);
+        fs.close();
+    }
+
+    ret = pD3d11device->CreateVertexShader(static_cast<void *>(data), size, nullptr, &ppVertexShader);
+    if (ret != S_OK) {
+        std::cerr << "Failed to create vertex shader\n";
+        std::cerr << "Ret: " << std::hex << ret << std::dec << "\n";
+    } else {
+        std::cerr << "Created vtx shader object successfully\n";
+    }
+
+    ret = pD3d11device->CreatePixelShader(static_cast<void *>(psData), psSize, nullptr, &ppPixelShader);
+    if (ret != S_OK) {
+        std::cerr << "Failed to create pixel shader\n";
+        std::cerr << "Ret: " << std::hex << ret << std::dec << "\n";
+    } else {
+        std::cerr << "Created pixel shader object successfully\n";
+    }
+    
+    D3D11_INPUT_ELEMENT_DESC iaDesc = {
+        "POSITION",
+        0,
+        DXGI_FORMAT_R32G32B32_FLOAT,
+        0,
+        0,
+        D3D11_INPUT_PER_VERTEX_DATA,
+        0
+    };
+
+    ID3D11InputLayout *pInputLayout;
+    ret = pD3d11device->CreateInputLayout(&iaDesc, 1U, data, size, &pInputLayout);
+    if (ret != S_OK) {
+        std::cerr << "Failed to create input layout\n";
+        std::cerr << "Ret: " << std::hex << ret << std::dec << "\n";
+    } else {
+        std::cerr << "Created input layout successfully\n";
+    }
+
+    struct VtxInput {
+        float x;
+        float y;
+        float z;
+    };
+
+    VtxInput input[3] = {
+        {-0.5, -0.5, 0.0},
+        {0.0, 0.5, 0.0},
+        {0.5, -0.5, 0.0}
+    };
+
+    D3D11_BUFFER_DESC vtxBufferDesc = {
+        sizeof(VtxInput) * 3,
+        D3D11_USAGE_DEFAULT,
+        D3D11_BIND_VERTEX_BUFFER,
+        0,
+        0,
+        0
+    };
+
+    D3D11_SUBRESOURCE_DATA initData = {
+        input,
+        0,
+        0
+    };
+
+    ID3D11Buffer *pVtxBuffer;
+    ret = pD3d11device->CreateBuffer(&vtxBufferDesc, &initData, &pVtxBuffer);
+    if (ret != S_OK) {
+        std::cerr << "Failed to create Vertex Buffer\n";
+        std::cerr << "Ret: " << std::hex << ret << std::dec << "\n";
+    } else {
+        std::cerr << "Created Vertex Buffer\n";
+    }
+    
+    UINT stride = sizeof(VtxInput);
+    UINT offset = 0;
+
+    RECT winRect;
+    GetClientRect(*hWindow, &winRect);
+    D3D11_VIEWPORT viewport = { 0.0f, 0.0f, (FLOAT)(winRect.right - winRect.left), (FLOAT)(winRect.bottom - winRect.top), 0.0f, 1.0f };
+
+    pD3d11context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pD3d11context->IASetInputLayout(pInputLayout);
+    pD3d11context->IASetVertexBuffers(0, 1, &pVtxBuffer, &stride, &offset);
+
+    pD3d11context->VSSetShader(ppVertexShader, NULL, 0);
+    pD3d11context->PSSetShader(ppPixelShader, NULL, 0);
+
+    pD3d11context->RSSetViewports(1, &viewport);
+    pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
+    pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
+
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+        colors[0] = red.operator++();
+        colors[1] = green.operator++();
+        colors[2] = blue.operator++();
+        pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
+        pD3d11context->Draw(3, 0);
+        pSwapchain->Present(0, 0);
     }
 }

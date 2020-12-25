@@ -57,5 +57,9 @@ namespace GLPG {
         return xcbConnection;
     }
 
+    void *GLPGWindowImpl_Xcb::GetWindowHandle() {
+        return reinterpret_cast<void *>(&xcbConnection);
+    }
+
 } // namespace GLPG
 

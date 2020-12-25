@@ -14,12 +14,12 @@ namespace GLPG {
             uint32_t GetHeightImpl() override final;
             HWND& GetWin32WindowHandle();
             HDC& GetWin32HDC();
+            void* GetWindowHandle() override final;
         private:
             HWND hWindow;
             HINSTANCE hInstance;
             HDC hDc;
             WNDCLASS wc = {};
-            MSG msg = {};
             uint32_t windowWidth;
             uint32_t windowHeight;
     };

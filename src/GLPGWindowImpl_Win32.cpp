@@ -65,7 +65,12 @@ namespace GLPG {
     }
 
     HDC& GLPGWindowImpl_Win32::GetWin32HDC() {
-        return hDc;
+        return 
+        hDc;
+    }
+
+    void* GLPGWindowImpl_Win32::GetWindowHandle() {
+        return reinterpret_cast<void*>(&hWindow);
     }
 } // namespace GLPG
 

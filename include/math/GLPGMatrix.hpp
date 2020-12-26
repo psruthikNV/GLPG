@@ -1,14 +1,3 @@
-/*
- * Bit of a primer on C++ references as I keep forgetting them!
- *
- * A Reference variable does not occupy any extra memory and its
- * address is the same as the variable it is referring to.
- *
- * Reference can never be null and always need to be initialized.
- * Functions returning Reference variables implicitly convert the
- * return value to reference.
- */
-
 #pragma once
 #include <array>
 #include <initializer_list>

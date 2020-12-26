@@ -11,36 +11,7 @@
 #include <d3dcompiler.h>
 #undef CreateWindow // We require this undef since GLPG's CreateWindow collides with Win32's CreateWindow macro
 
-
-template <typename T>
-class counter {
-public:
-    counter(T val) : m_val(val), performAddition(true) {};
-    counter() : m_val(T(0)), performAddition(true) {};
-
-    // Perhaps the most stupidest op overload ever.
-    T operator++() {
-        if (performAddition) {
-            m_val += 0.001;
-        } else {
-            m_val -= 0.001;
-        }
-
-        if (m_val > T(1)|| m_val <= T(0)) {
-            performAddition = !performAddition;
-        }
-        return m_val;
-    }
-
-private:
-    T m_val;
-    bool performAddition;
-};
-
-using counter_f = counter<float>;
-
 int main() {
-
     HRESULT ret;
     uint32_t idx = 0U;
     std::random_device rd;
@@ -119,6 +90,25 @@ int main() {
         std::cout << "Err:" << ret << "\n";
         return -1;
     }
+
+    ID3D11InfoQueue* debugInfoQueue;
+    ret = pD3d11device->QueryInterface(__uuidof(ID3D11InfoQueue), (void **)&debugInfoQueue);
+    if (ret != S_OK) {
+        std::cerr << "Failed to query Info Queue\n";
+        return -1;
+    } else {
+        std::cerr << "Queried Info queue\n";
+    }
+
+    ret = debugInfoQueue->PushEmptyStorageFilter();
+    if (ret != S_OK) {
+        std::cerr << "Failed to push empty filter onto info queue\n";
+        return -1;
+    } else {
+        std::cerr << "Pushed filter\n";
+    }
+
+
     
     DXGI_MODE_DESC modeDesc = { 0 };
     modeDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -175,34 +165,11 @@ int main() {
         return -1;
     }
 
-    pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
-
-    float colors[4];
-    colors[3] = 0.0F;
-
-    counter_f red(dist(gen));
-    counter_f green(dist(gen));
-    counter_f blue(dist(gen));
-
-    // 1. Clear color
-    uint32_t numFramesRendered = 0U;
-    uint32_t maxRenderedFrames = 120U;
-    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
-        colors[0] = red.operator++();
-        colors[1] = green.operator++();
-        colors[2] = blue.operator++();
-        pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
-        pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
-        pSwapchain->Present(1, 0);
-    }
-
-    // 2. Basic triangle
-
     // Load compiled Vertex shader binary
     char *data;
     char *psData;
-    const char *compiledVSPath = "C:/repos/GLPG/d3d11/vtxShader";
-    const char *compiledPSPath = "C:/repos/GLPG/d3d11/pixelShader";
+    const char *compiledVSPath = "C:/repos/GLPG/d3d11/02_triangle_vs";
+    const char *compiledPSPath = "C:/repos/GLPG/d3d11/02_triangle_ps";
     std::fstream fs;
     std::streampos size;
     std::streampos psSize;
@@ -317,15 +284,34 @@ int main() {
     pD3d11context->PSSetShader(ppPixelShader, NULL, 0);
 
     pD3d11context->RSSetViewports(1, &viewport);
-    pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
     pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
 
+    float colors[4];
+    colors[3] = 1.0F;
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
-        colors[0] = red.operator++();
-        colors[1] = green.operator++();
-        colors[2] = blue.operator++();
+        colors[0] = 0.0F;
+        colors[1] = 0.5F;
+        colors[2] = 0.5F;
         pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
         pD3d11context->Draw(3, 0);
         pSwapchain->Present(0, 0);
     }
+
+    // Below code is taken from https://stackoverflow.com/a/57362700
+    // TODO: Add a debug thread that polls GetNumStorageMessages
+    uint64_t messageCount = debugInfoQueue->GetNumStoredMessages();
+    for (uint64_t idx = 0U; idx < messageCount; idx++) {
+        SIZE_T message_size = 0;
+        debugInfoQueue->GetMessage(idx, nullptr, &message_size); //get the size of the message
+
+        D3D11_MESSAGE* message = (D3D11_MESSAGE*) malloc(message_size); //allocate enough space
+        ret = debugInfoQueue->GetMessage(idx, message, &message_size);
+        if (ret != S_OK) {
+            std::cerr << "Failed to get any message\n";
+        } else {
+            std::cerr << "D3D11 Debug: " << message->DescriptionByteLength << " " << message->pDescription << "\n";
+        }
+        free(message);
+    }
+    debugInfoQueue->ClearStoredMessages();
 }

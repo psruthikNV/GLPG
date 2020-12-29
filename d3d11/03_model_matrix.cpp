@@ -322,7 +322,7 @@ int main() {
         pD3d11context->UpdateSubresource(pVtxConstantBuffer, 0, 0, modelMatrix.data(), 0, 0);
         pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
         pD3d11context->Draw(3, 0);
-        pSwapchain->Present(0, 0);
+        pSwapchain->Present(1, 0);
     }
 
     // Below code is taken from https://stackoverflow.com/a/57362700

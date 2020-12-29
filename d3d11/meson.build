@@ -1,6 +1,5 @@
 dependenciesList += [glpg_compiler.find_library('dxgi')]
 dependenciesList += [glpg_compiler.find_library('d3d11')]
-dependenciesList += [glpg_compiler.find_library('d3dcompiler')]
 
 #TODO: Integrate FXC into build scripts to build shaders automatically at compile time
 
@@ -20,3 +19,6 @@ executable('04_index_buffer', '04_index_buffer.cpp',
            dependencies : dependenciesList,
            link_with: libglpg)
 
+executable('05_instanced_draw', '05_instanced_draw.cpp',
+           dependencies : dependenciesList,
+           link_with: libglpg)

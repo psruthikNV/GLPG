@@ -3,15 +3,51 @@
 
 #include <Windows.h>
 #include <d3d12.h>
-#include "d3dx12.h"
 #include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <dxgi.h>
 #include <wrl/client.h>
-
+#include "d3dx12.h" //TODO: Remove dependency on this header
+#include <random>
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "user32.lib")
 #pragma warning(disable:4996)
+
+template <typename T>
+class counter {
+public:
+	counter(T val) : m_val(val), performAddition(true) {};
+	counter() : m_val(T(0)), performAddition(true) {};
+
+	// Perhaps the most stupidest op overload ever.
+	T operator++() {
+		if (performAddition) {
+			m_val += 0.001;
+		}
+		else {
+			m_val -= 0.001;
+		}
+
+		if (m_val > T(1) || m_val <= T(0)) {
+			performAddition = !performAddition;
+		}
+		return m_val;
+	}
+
+private:
+	T m_val;
+	bool performAddition;
+};
+
+using counter_f = counter<float>;
+std::random_device rd;
+std::mt19937 gen(rd());
+std::uniform_real_distribution<float> dist(0.0, 1.0);
+counter_f red(dist(gen));
+counter_f green(dist(gen));
+counter_f blue(dist(gen));
+float colors[4];
 
 using Microsoft::WRL::ComPtr;
 
@@ -20,11 +56,11 @@ ComPtr<IDXGIFactory4> factory;
 ComPtr<IDXGIAdapter1> adapter;
 ComPtr<ID3D12Device> device;
 ComPtr<ID3D12CommandQueue> commandQueue;
-ComPtr<IDXGISwapChain1> swapChain; 
+ComPtr<IDXGISwapChain1> swapChain;
 ComPtr<IDXGISwapChain3> m_swapChain;
 ComPtr<ID3D12DescriptorHeap> descHeap;
 ComPtr<ID3D12Resource> renderTarget[2];
-ComPtr<ID3D12CommandAllocator> commandAllocator; 
+ComPtr<ID3D12CommandAllocator> commandAllocator;
 ComPtr<ID3D12GraphicsCommandList> commandList;
 ComPtr<ID3D12Fence> fence;
 ComPtr<ID3D12PipelineState> pipelineState;
@@ -35,7 +71,7 @@ static int frameIdx;
 static int fenceValue;
 
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-int setupD3D12(HWND *hWnd)
+int setupD3D12(HWND* hWnd)
 {
 	int dxgiFactoryFlags = 0;
 
@@ -43,7 +79,7 @@ int setupD3D12(HWND *hWnd)
 	ComPtr<ID3D12Debug> debugController;
 
 	if (D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)) != 0) {
-		OutputDebugString("\n Failed to Get Debug Interface");
+		OutputDebugString(L"\n Failed to Get Debug Interface");
 		return -1;
 	}
 	debugController->EnableDebugLayer();
@@ -52,7 +88,7 @@ int setupD3D12(HWND *hWnd)
 	// Create the DXGI Factory object
 
 	if (CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)) != 0) {
-		OutputDebugString("\n Failed to Create DXGI Factory");
+		OutputDebugString(L"\n Failed to Create DXGI Factory");
 		return -1;
 	}
 
@@ -72,7 +108,7 @@ int setupD3D12(HWND *hWnd)
 	}
 
 	if (D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device)) != 0) {
-		OutputDebugString("\n Failed to Create D3D12 Device");
+		OutputDebugString(L"\n Failed to Create D3D12 Device");
 	}
 
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
@@ -81,7 +117,7 @@ int setupD3D12(HWND *hWnd)
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
 	if (device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&commandQueue)) < 0) {
-		OutputDebugString("Failed to create Command Queue");
+		OutputDebugString(L"Failed to create Command Queue");
 	}
 
 
@@ -97,12 +133,12 @@ int setupD3D12(HWND *hWnd)
 	// For d3d11, commandQueue is replaced with a handle to the d3d11 device.
 	if (factory->CreateSwapChainForHwnd(commandQueue.Get(), *hWnd, &swapDesc, nullptr, nullptr,
 		&swapChain) < 0) {
-		OutputDebugString("\n Failed to create Swap Chain");
+		OutputDebugString(L"\n Failed to create Swap Chain");
 	}
 
 	// Allows DXGI to handle alt-enter sequences for switching from window to full screen
 	if (factory->MakeWindowAssociation(*hWnd, DXGI_MWA_NO_ALT_ENTER)) {
-		OutputDebugString("\n Failed to make window association");
+		OutputDebugString(L"\n Failed to make window association");
 	}
 
 	if (swapChain.As(&m_swapChain) < 0) {
@@ -117,7 +153,7 @@ int setupD3D12(HWND *hWnd)
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	if (device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&descHeap)) < 0) {
-		OutputDebugString("Failed to create descriptor heap");
+		OutputDebugString(L"Failed to create descriptor heap");
 	}
 	descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
@@ -126,14 +162,14 @@ int setupD3D12(HWND *hWnd)
 
 	for (int i = 0; i < 2; i++) {
 		if (m_swapChain->GetBuffer(i, IID_PPV_ARGS(&renderTarget[i])) < 0)
-			OutputDebugString("\n Failed to get Buffer from swap chain");
+			OutputDebugString(L"\n Failed to get Buffer from swap chain");
 		device->CreateRenderTargetView(renderTarget[i].Get(), nullptr, rtvHandle);
 		rtvHandle.Offset(1, descriptorSize);
 	}
 
 
 	if (device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator)) < 0)
-		OutputDebugString("\n Failed to create allocation for commands");
+		OutputDebugString(L"\n Failed to create allocation for commands");
 
 
 	if (device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)) < 0) {
@@ -144,7 +180,7 @@ int setupD3D12(HWND *hWnd)
 		printf("\n Failed to Close command list");
 	}
 
-	
+
 
 
 	if (device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)) < 0) {
@@ -162,6 +198,10 @@ int setupD3D12(HWND *hWnd)
 
 int render()
 {
+	colors[3] = 0.0F;
+	colors[0] = red.operator++();
+	colors[1] = green.operator++();
+	colors[2] = blue.operator++();
 	//frameIdx = (frameIdx == 1) ? 0 : frameIdx;
 	if (commandAllocator->Reset() < 0) {
 		printf("\n Failed to reset Command Allocator");
@@ -177,8 +217,8 @@ int render()
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(descHeap->GetCPUDescriptorHandleForHeapStart(), frameIdx, descriptorSize);
 
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	commandList->ClearRenderTargetView(rtvHandle, colors, 0, nullptr);
 
 	commandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(renderTarget[frameIdx].Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
 
@@ -190,11 +230,11 @@ int render()
 	ID3D12CommandList* ppCommandList[] = { commandList.Get() };
 	commandQueue->ExecuteCommandLists(_countof(ppCommandList), ppCommandList);
 
-	if (m_swapChain->Present(1, 0) < 0) {
+	if (m_swapChain->Present(0, 0) < 0) {
 		printf("\n Failed to present the frame");
 		return -1;
 	}
-	
+
 
 	const UINT64 fence = fenceValue;
 	if (commandQueue->Signal(::fence.Get(), fence) < 0) {
@@ -213,12 +253,13 @@ int render()
 	frameIdx = m_swapChain->GetCurrentBackBufferIndex();
 	return 0;
 }
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int main()
 {
 	ATOM ret;
 	WNDCLASSEX wClass = { 0 };
 	HWND hWnd;
-	
+	HINSTANCE hInstance = GetModuleHandle(NULL);
+
 
 	AllocConsole();
 
@@ -238,7 +279,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	// Load a cursor from the specified hInstance's exe. (NULL here)
 	wClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 
-	wClass.lpszClassName = "DX12Class";
+	wClass.lpszClassName = L"DX12Class";
 
 	ret = RegisterClassEx(&wClass);
 
@@ -248,14 +289,14 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	RECT windowRect = { 0, 0, 640, 480 };
 	AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
 
-	hWnd = CreateWindowA(wClass.lpszClassName, "DX12 stuff", WS_OVERLAPPEDWINDOW,
+	hWnd = CreateWindow(wClass.lpszClassName, L"DX12 stuff", WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT, windowRect.right - windowRect.left,
 		windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance, nullptr);
 
 
 	int err = setupD3D12(&hWnd);
 
-	ShowWindow(hWnd, nCmdShow);
+	ShowWindow(hWnd, SW_SHOWNORMAL);
 
 	MSG msg = {};
 	while (msg.message != WM_QUIT) {

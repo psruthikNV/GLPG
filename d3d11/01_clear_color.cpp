@@ -8,7 +8,6 @@
 
 #include <d3d11.h>
 #include <dxgi1_2.h>
-#include <d3dcompiler.h>
 #undef CreateWindow // We require this undef since GLPG's CreateWindow collides with Win32's CreateWindow macro
 
 
@@ -136,16 +135,6 @@ int main() {
         std::cerr << "Pushed filter\n";
     }
 
-
-    
-    DXGI_MODE_DESC modeDesc = { 0 };
-    modeDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    modeDesc.Width = 0;
-    modeDesc.Height = 0;
-    modeDesc.RefreshRate = DXGI_RATIONAL{ 60, 1 };
-    modeDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-    modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE;
-
     DXGI_SAMPLE_DESC sampleDesc = { 0 };
     sampleDesc.Count = 1;
     sampleDesc.Quality = 0;
@@ -202,7 +191,6 @@ int main() {
     counter_f green(dist(gen));
     counter_f blue(dist(gen));
 
-    // 1. Clear color
     uint32_t numFramesRendered = 0U;
     uint32_t maxRenderedFrames = 120U;
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {

@@ -22,3 +22,11 @@ executable('04_index_buffer', '04_index_buffer.cpp',
 executable('05_instanced_draw', '05_instanced_draw.cpp',
            dependencies : dependenciesList,
            link_with: libglpg)
+
+executable('06_camera_matrix', '06_camera_matrix.cpp',
+           dependencies : dependenciesList,
+           link_with: libglpg)
+
+executable('07_projection_matrix', '07_projection_matrix.cpp',
+           dependencies : dependenciesList,
+           link_with: libglpg)

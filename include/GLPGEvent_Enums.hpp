@@ -22,5 +22,7 @@ namespace GLPG {
         Key_Clear,
         Key_SysReq,
         Key_Delete,
+        MouseWheel_Up,
+        MouseWheel_Down
     };
 }

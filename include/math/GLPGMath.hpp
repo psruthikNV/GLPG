@@ -58,6 +58,20 @@ namespace GLPG {
                 0, 0, 0, 1};
             return rv;
         }
+    template <typename T>
+        matrix<4, 4, T> lookAtLH(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
+        {
+            vec<3, T> w = (center - eye).normalize();
+            vec<3, T> temp = up.cross(w);
+            vec<3, T> u = temp.normalize();
+            vec<3, T> v = w.cross(u);
+
+            matrix<4, 4, T> rv = {u[0], u[1], u[2], -u.dot(eye),
+                v[0], v[1], v[2], -v.dot(eye),
+                w[0], w[1], w[2], -w.dot(eye),
+                0, 0, 0, 1};
+            return rv;
+        }
 
     template <typename T>
         matrix<4, 4, T> frustum(T l, T r, T b, T t, T n, T f)
@@ -87,6 +101,17 @@ namespace GLPG {
                                   0, f, 0, 0,
                                   0, 0, (zFar + zNear) / (zNear - zFar), (2 * zFar * zNear)/ (zNear - zFar),
                                   0, 0, -1, 0};
+            return rv;
+        }
+    template <typename T>
+        matrix<4, 4, T> gluPerspectiveLH(T fovy, T aspect, T zNear, T zFar)
+        {
+            T f = 1.0f / tan(((fovy * PI_F) / 180) / 2);
+            
+            matrix<4, 4, T> rv = {f / aspect, 0, 0, 0,
+                                  0, f, 0, 0,
+                                  0, 0, (zFar + zNear) / (zFar - zNear), (2 * zFar * zNear)/ (zFar - zNear),
+                                  0, 0, 1, 0};
             return rv;
         }
 }

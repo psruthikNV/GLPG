@@ -348,16 +348,16 @@ int main() {
             std::cerr << "Failed to signal fence\n";
             goto fail;
         }
-        signaledFenceValue++;
 
-        if (pFence->GetCompletedValue() < signaledFenceValue - 1U) {
-            if (pFence->SetEventOnCompletion(signaledFenceValue - 1U, fenceEvent) != S_OK) {
+        if (pFence->GetCompletedValue() < signaledFenceValue) {
+            if (pFence->SetEventOnCompletion(signaledFenceValue, fenceEvent) != S_OK) {
                 std::cerr << "failed to set event on completion\n";
                 goto fail;
             }
             WaitForSingleObject(fenceEvent, INFINITE);
         }
         backBufferIdx = pSwapchain3->GetCurrentBackBufferIndex();
+        signaledFenceValue++;
     }
 
 fail:

@@ -45,6 +45,14 @@ namespace GLPG {
                             rv = GLPGEvent::Key_W;
                             break;
                     }
+                    break;
+                case WM_MOUSEWHEEL:
+                    if (GET_WHEEL_DELTA_WPARAM(msg.wParam) > 0) {
+                        rv = GLPGEvent::MouseWheel_Up;
+                    } else {
+                        rv = GLPGEvent::MouseWheel_Down;
+                    }
+                    break;
             }
         }
         return rv;

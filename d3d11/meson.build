@@ -15,12 +15,12 @@ hlsl_shader_files = (hlsl_shaders)
 
 shader_targets = []
 
-foreach hlsl_shader : hlsl_shaders
-    if hlsl_shader.contains('vs') == true
-        shader_targets += custom_target(
-            'shader @0@'.format(hlsl_shader),
-            command : [fxc, '@INPUT@', '-T', hlsl_vs_profile, '-Fo', '@OUTPUT@'],
-            input : hlsl_shader,
+    foreach hlsl_shader : hlsl_shaders
+        if hlsl_shader.contains('vs') == true
+            shader_targets += custom_target(
+                'shader @0@'.format(hlsl_shader),
+                command : [fxc, '@INPUT@', '-T', hlsl_vs_profile, '-Fo', '@OUTPUT@'],
+                input : hlsl_shader,
             output : '@BASENAME@'
         )
     elif hlsl_shader.contains('ps') == true
@@ -58,5 +58,9 @@ executable('06_camera_matrix', ['06_camera_matrix.cpp', shader_targets[6], shade
            link_with: libglpg)
 
 executable('07_projection_matrix', ['07_projection_matrix.cpp', shader_targets[8], shader_targets[9]],
+           dependencies : dependenciesList,
+           link_with: libglpg)
+
+executable('08_3dprojection', ['08_3dprojection.cpp', shader_targets[8], shader_targets[9]],
            dependencies : dependenciesList,
            link_with: libglpg)

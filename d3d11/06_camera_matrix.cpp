@@ -234,8 +234,8 @@ int main() {
 
     VtxInput input[3] = {
         {-0.5, -0.5, 0.0},
-        {0.0, 0.5, 0.0},
-        {0.5, -0.5, 0.0}
+        {0.5, -0.5, 0.0},
+        {0.0, 0.5, 0.0}
     };
 
     D3D11_BUFFER_DESC vtxBufferDesc = {
@@ -270,7 +270,7 @@ int main() {
     GLPG::vec3_f translateVector = {0.0, 0.0, 0.0};
     GLPG::vec3_f upVector = {0.0, 1.0, 0.0};
     GLPG::vec3_f eyePosition = {0.0, 0.0, -1.0};
-    GLPG::vec3_f viewVector = {0.0, 0.0, 1.0};
+    GLPG::vec3_f viewVector = {0.0, 0.0, 0.0};
     struct MVP {
         GLPG::mat4x4_f model;
         GLPG::mat4x4_f view;
@@ -288,6 +288,7 @@ int main() {
         0
     };
 
+    
     D3D11_SUBRESOURCE_DATA constantBufferInitData = {
         &mvp,
         0,
@@ -318,6 +319,27 @@ int main() {
     colors[0] = 0.0F;
     colors[1] = 0.5F;
     colors[2] = 0.5F;
+
+    ID3D11RasterizerState *pRasterizerState;
+    D3D11_RASTERIZER_DESC rasterizerDesc = {
+        D3D11_FILL_SOLID,
+        D3D11_CULL_BACK,
+        true, // To match the default front face order of OpenGL
+        0,
+        0.0F,
+        0.0F,
+        true,
+        false,
+        false,
+        false
+    };
+
+    ret = pD3d11device->CreateRasterizerState(&rasterizerDesc, &pRasterizerState);
+    if (ret != S_OK) {
+        std::cerr << "Failed to create rasterizer state\n";
+    }
+
+    pD3d11context->RSSetState(pRasterizerState);
     
 
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {

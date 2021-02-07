@@ -60,7 +60,3 @@ executable('06_camera_matrix', ['06_camera_matrix.cpp', shader_targets[6], shade
 executable('07_projection_matrix', ['07_projection_matrix.cpp', shader_targets[8], shader_targets[9]],
            dependencies : dependenciesList,
            link_with: libglpg)
-
-executable('08_3dprojection', ['08_3dprojection.cpp', shader_targets[8], shader_targets[9]],
-           dependencies : dependenciesList,
-           link_with: libglpg)

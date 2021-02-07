@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
     mat4x4_f modelMatrix;
     modelMatrix = translate(modelMatrix, translateVector);
-    mat4x4_f viewMatrix = lookAt(eyePosition, viewVector, upVector);
+    mat4x4_f viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
         glClear(GL_COLOR_BUFFER_BIT);

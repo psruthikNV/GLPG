@@ -188,7 +188,7 @@ void GLPGRenderLoop()
             QueryPerformanceCounter(&timer);
             float camX = sin(timer.QuadPart * 0.0000001F) * radius;
             float camZ = cos(timer.QuadPart * 0.0000001F) * radius;
-            view = lookAt(vec3_f({GLPGState.camX, 0.0, GLPGState.camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
+            view = lookAtRH(vec3_f({GLPGState.camX, 0.0, GLPGState.camZ}), vec3_f({0.0, 0.0, 0.0}), vec3_f({0.0, 1.0, 0.0}));
             glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, view.data());
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);

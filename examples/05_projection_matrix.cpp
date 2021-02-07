@@ -168,12 +168,12 @@ int main(int argc, char **argv)
     mat4x4_f viewMatrix;
 
     modelMatrix = translate(modelMatrix, translateVector);
-    viewMatrix = lookAt(eyePosition, viewVector, upVector);
+    viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape){
         eyePosition = {0.0F, 0.0F, 3.0F};
-        viewMatrix = lookAt(eyePosition, viewVector, upVector);
+        viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < 10; i++) {
             modelMatrix.identity();

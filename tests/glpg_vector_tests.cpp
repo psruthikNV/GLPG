@@ -2,7 +2,7 @@
 #include <random>
 
 #include "gtest/gtest.h"
-#include "math/glpg_math.hpp"
+#include "math/GLPGMath.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
 
@@ -22,9 +22,9 @@ namespace {
                 generateTestVertices();
             }
         public:
-            glpg::vec3_f generateRandomVec3_f();
+            GLPG::vec3_f generateRandomVec3_f();
             glm::vec3 generateRandomGlmVec3();
-            glpg::vec3_f glpgVec[2];
+            GLPG::vec3_f glpgVec[2];
             glm::vec3 glmVec[2];
     };
 
@@ -40,7 +40,7 @@ namespace {
     TEST_F(mockTest, vectorAdditionTest)
     {
         glm::vec3 glm_temp;
-        glpg::vec3_f glpg_temp;
+        GLPG::vec3_f glpg_temp;
 
         glm_temp = glmVec[0] + glmVec[1];
         glpg_temp = glpgVec[0] + glpgVec[1];
@@ -53,7 +53,7 @@ namespace {
     TEST_F(mockTest, vectorSubtractionTest)
     {
         glm::vec3 glm_temp;
-        glpg::vec3_f glpg_temp;
+        GLPG::vec3_f glpg_temp;
 
         glm_temp = glmVec[0] - glmVec[1];
         glpg_temp = glpgVec[0] - glpgVec[1];
@@ -66,7 +66,7 @@ namespace {
     TEST_F(mockTest, vectorCrossProductTest)
     {
         glm::vec3 glm_temp;
-        glpg::vec3_f glpg_temp;
+        GLPG::vec3_f glpg_temp;
 
         glm_temp = glm::cross(glmVec[0], glmVec[1]);
         glpg_temp = glpgVec[0].cross(glpgVec[1]);
@@ -79,7 +79,7 @@ namespace {
     TEST_F(mockTest, vectorNormalizeTest)
     {
         glm::vec3 glm_temp;
-        glpg::vec3_f glpg_temp;
+        GLPG::vec3_f glpg_temp;
 
         glm_temp = glm::normalize(glmVec[0]);
         glpg_temp = glpgVec[0].normalize();

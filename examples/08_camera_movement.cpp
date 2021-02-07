@@ -204,7 +204,7 @@ void GLPGRenderLoop()
                 break;
         }
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        view = lookAt(camera.position, camera.viewVector, camera.upVector);
+        view = lookAtRH(camera.position, camera.viewVector, camera.upVector);
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, view.data());
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
         glDrawElements(GL_TRIANGLES, vtxIdx.size(), GL_UNSIGNED_INT, 0);

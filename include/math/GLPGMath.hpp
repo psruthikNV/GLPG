@@ -38,38 +38,39 @@ namespace GLPG {
         matrix<4, 4, T> translate(matrix<4, 4, T> &m, vec<3, T> &v )
         {
             matrix<4, 4, T> rv = {T(1), T(0), T(0), v[0],
-                T(0), T(1), T(0), v[1],
-                T(0), T(0), T(1), v[2],
-                T(0), T(0), T(0), T(1)};
+                                  T(0), T(1), T(0), v[1],
+                                  T(0), T(0), T(1), v[2],
+                                  T(0), T(0), T(0), T(1)};
             return (matmul(m, rv));
         }
 
     template <typename T>
-        matrix<4, 4, T> lookAt(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
+        matrix<4, 4, T> lookAtRH(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
         {
-            vec<3, T> w = (eye - center).normalize();
-            vec<3, T> temp = up.cross(w);
-            vec<3, T> u = temp.normalize();
-            vec<3, T> v = w.cross(u);
+            vec<3, T> Z = (eye - center).normalize();
+            vec<3, T> temp = up.cross(Z);
+            vec<3, T> X = temp.normalize();
+            vec<3, T> Y = Z.cross(X);
 
-            matrix<4, 4, T> rv = {u[0], u[1], u[2], -u.dot(eye),
-                v[0], v[1], v[2], -v.dot(eye),
-                w[0], w[1], w[2], -w.dot(eye),
-                0, 0, 0, 1};
+            matrix<4, 4, T> rv = {X[0], X[1], X[2], -X.dot(eye),
+                                  Y[0], Y[1], Y[2], -Y.dot(eye),
+                                  Z[0], Z[1], Z[2], -Z.dot(eye),
+                                  0, 0, 0, 1};
+
             return rv;
         }
     template <typename T>
         matrix<4, 4, T> lookAtLH(vec<3, T> &eye, vec<3, T> &center, vec<3, T> &up)
         {
-            vec<3, T> w = (center - eye).normalize();
-            vec<3, T> temp = up.cross(w);
-            vec<3, T> u = temp.normalize();
-            vec<3, T> v = w.cross(u);
+            vec<3, T> Z = (center - eye).normalize();
+            vec<3, T> temp = up.cross(Z);
+            vec<3, T> X = temp.normalize();
+            vec<3, T> Y = Z.cross(X);
 
-            matrix<4, 4, T> rv = {u[0], u[1], u[2], -u.dot(eye),
-                v[0], v[1], v[2], -v.dot(eye),
-                w[0], w[1], w[2], -w.dot(eye),
-                0, 0, 0, 1};
+            matrix<4, 4, T> rv = {X[0], X[1], X[2], -X.dot(eye),
+                                  Y[0], Y[1], Y[2], -Y.dot(eye),
+                                  Z[0], Z[1], Z[2], -Z.dot(eye),
+                                  0, 0, 0, 1};
             return rv;
         }
 

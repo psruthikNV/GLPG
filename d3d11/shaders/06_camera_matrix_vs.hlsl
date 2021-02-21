@@ -13,8 +13,7 @@ cbuffer MatrixContents {
 
 float4 main( float4 pos : POSITION ) : SV_POSITION
 {
-    float4 ret = mul(modelMatrix, pos);
-    ret = mul(viewMatrix, ret);
+    float4 ret = mul(viewMatrix, mul(modelMatrix, pos));
     
 	return ret;
 }

@@ -5,11 +5,11 @@ fxc = find_program('fxc')
 hlsl_vs_profile = 'vs_4_0_level_9_1'
 hlsl_ps_profile = 'ps_4_0_level_9_1'
 
-hlsl_shaders = ['02_triangle_vs.hlsl', '02_triangle_ps.hlsl',
-                '03_model_matrix_vs.hlsl', '03_model_matrix_ps.hlsl',
-                '05_instanced_draw_vs.hlsl', '05_instanced_draw_ps.hlsl',
-                '06_camera_matrix_vs.hlsl', '06_camera_matrix_ps.hlsl',
-                '07_projection_matrix_vs.hlsl', '07_projection_matrix_ps.hlsl']
+hlsl_shaders = ['shaders/02_triangle_vs.hlsl', 'shaders/02_triangle_ps.hlsl',
+                'shaders/03_model_matrix_vs.hlsl', 'shaders/03_model_matrix_ps.hlsl',
+                'shaders/05_instanced_draw_vs.hlsl', 'shaders/05_instanced_draw_ps.hlsl',
+                'shaders/06_camera_matrix_vs.hlsl', 'shaders/06_camera_matrix_ps.hlsl',
+                'shaders/07_projection_matrix_vs.hlsl', 'shaders/07_projection_matrix_ps.hlsl']
 
 hlsl_shader_files = (hlsl_shaders)
 

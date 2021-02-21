@@ -171,8 +171,8 @@ int main() {
     // Load compiled Vertex shader binary
     char *data;
     char *psData;
-    const char *compiledVSPath = "C:/repos/GLPG/d3d11/03_model_matrix_vs";
-    const char *compiledPSPath = "C:/repos/GLPG/d3d11/03_model_matrix_ps";
+    const char *compiledVSPath = "C:/repos/GLPG/build/d3d11/03_model_matrix_vs";
+    const char *compiledPSPath = "C:/repos/GLPG/build/d3d11/03_model_matrix_ps";
     std::fstream fs;
     std::streampos size;
     std::streampos psSize;

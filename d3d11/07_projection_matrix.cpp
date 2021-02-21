@@ -29,7 +29,7 @@ int main() {
         return -1;
     }
 
-    if (window->CreateWindow(640, 480)) {
+    if (window->CreateWindow(2560, 1440)) {
         std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
     } else {
         std::cout << "Failed to create native window\n";
@@ -167,8 +167,8 @@ int main() {
     // Load compiled Vertex shader binary
     char *data;
     char *psData;
-    const char *compiledVSPath = "C:/repos/GLPG/d3d11/07_projection_matrix_vs";
-    const char *compiledPSPath = "C:/repos/GLPG/d3d11/07_projection_matrix_ps";
+    const char *compiledVSPath = "C:/repos/GLPG/build/d3d11/07_projection_matrix_vs";
+    const char *compiledPSPath = "C:/repos/GLPG/build/d3d11/07_projection_matrix_ps";
     std::fstream fs;
     std::streampos size;
     std::streampos psSize;

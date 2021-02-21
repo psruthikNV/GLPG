@@ -8,15 +8,10 @@
 
 cbuffer MatrixContents {
     matrix modelMatrix;
-    matrix viewMatrix;
-    matrix projectionMatrix;
 };
 
 float4 main( float4 pos : POSITION ) : SV_POSITION
 {
     float4 ret = mul(modelMatrix, pos);
-    ret = mul(viewMatrix, ret);
-    ret = mul(projectionMatrix, ret);
-    
 	return ret;
 }

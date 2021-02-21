@@ -168,8 +168,8 @@ int main() {
     // Load compiled Vertex shader binary
     char *data;
     char *psData;
-    const char *compiledVSPath = "C:/repos/GLPG/d3d11/02_triangle_vs";
-    const char *compiledPSPath = "C:/repos/GLPG/d3d11/02_triangle_ps";
+    const char *compiledVSPath = "C:/repos/GLPG/build/d3d11/02_triangle_vs";
+    const char *compiledPSPath = "C:/repos/GLPG/build/d3d11/02_triangle_ps";
     std::fstream fs;
     std::streampos size;
     std::streampos psSize;

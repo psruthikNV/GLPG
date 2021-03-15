@@ -7,35 +7,8 @@
 
 #include "../include/GLPGWindow.hpp"
 #include "../include/GLPGEvent.hpp"
-//#include "../internal/vk-print.hpp"
+#include "../include/utils/vk-print.hpp"
 #undef CreateWindow
-
-void ParseDeviceQueueDetails(uint32_t numDeviceQueues, VkQueueFamilyProperties *queuePropArray)
-{
-    for (uint32_t idx = 0U; idx < numDeviceQueues; idx++) {
-        fprintf(stderr, "Queue Family %u:\n", idx);
-        fprintf(stderr, "Num queues: %u\n", queuePropArray[idx].queueCount);
-        fprintf(stderr, "Supported caps:\n");
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            fprintf(stderr, "VK_QUEUE_GRAPHICS_BIT\n");
-        }
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_COMPUTE_BIT) {
-            fprintf(stderr, "VK_QUEUE_COMPUTE_BIT\n");
-        }
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            fprintf(stderr, "VK_QUEUE_GRAPHICS_BIT\n");
-        }
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_TRANSFER_BIT) {
-            fprintf(stderr, "VK_QUEUE_TRANSFER_BIT\n");
-        }
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
-            fprintf(stderr, "VK_QUEUE_SPARSE_BINDING_BIT\n");
-        }
-        if (queuePropArray[idx].queueFlags & VK_QUEUE_PROTECTED_BIT) {
-            fprintf(stderr, "VK_QUEUE_PROTECTED_BIT\n");
-        }
-    }
-}
 
 int main()
 {
@@ -221,17 +194,14 @@ int main()
                                                   &surfaceCaps) != VK_SUCCESS) {
         std::cerr << "Failed to get Surface capabilities\n";
     } else {
-        
+        VkPrintVkSurfaceCapabilitiesKHR(surfaceCaps);
     }
 
     swapchainCreateInfo.surface = surface;
-    std::cerr << "Surface handle value: " << surface << "\n";
-    std::cerr << "Device handle: " << device << "\n";
 
     if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
         fprintf(stderr, "Failed to create VkSwapchain\n");
         return -1;
-    } else {
     }
 
     delete[] physicalDevicesArray;

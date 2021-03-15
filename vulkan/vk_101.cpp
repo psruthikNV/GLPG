@@ -1,50 +1,14 @@
-#ifdef WIN32
-#include <Windows.h>
+#ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #else
 #define VK_USE_PLATFORM_XCB_KHR
+#endif
 #include <vulkan/vulkan.hpp>
 
-#ifdef WIN32
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam,
-    LPARAM lParam);
-
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam,
-    LPARAM lParam) {
-
-    switch (message) {
-    case WM_PAINT:
-        return 0;
-    }
-
-    return DefWindowProc(hWnd, message, wParam, lParam);
-}
-
-HWND CreateWin32Window(const int32_t width, const int32_t height) {
-    const char *windowName = "vk_101";
-    int a;
-    int b;
-    WNDCLASSEX wndClass = { 0 };
-
-    wndClass.cbSize = sizeof(WNDCLASSEX);
-    wndClass.style = CS_HREDRAW | CS_VREDRAW;
-    wndClass.lpfnWndProc = WindowProc;
-    wndClass.hInstance = GetModuleHandle(NULL);
-    wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wndClass.lpszClassName = "vk_101";
-
-    ATOM ret = RegisterClassEx(&wndClass);
-
-    RECT windowRect = { 0, 0, width, height };
-    AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, FALSE);
-
-    return (CreateWindow(wndClass.lpszClassName, windowName,
-        WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT,
-        windowRect.right - windowRect.left,
-        windowRect.bottom - windowRect.top, nullptr, nullptr,
-        wndClass.hInstance, nullptr));
-}
-#endif
+#include "../include/GLPGWindow.hpp"
+#include "../include/GLPGEvent.hpp"
+//#include "../internal/vk-print.hpp"
+#undef CreateWindow
 
 void ParseDeviceQueueDetails(uint32_t numDeviceQueues, VkQueueFamilyProperties *queuePropArray)
 {
@@ -75,12 +39,13 @@ void ParseDeviceQueueDetails(uint32_t numDeviceQueues, VkQueueFamilyProperties *
 
 int main()
 {
-    
+    GLPG::GLPGEventLoop eventLoop;
+    GLPG::GLPGEvent event;
     constexpr uint32_t defaultDeviceIdx = 0U;
     constexpr uint32_t numRequiredInstanceExtns = 3U;
     constexpr uint32_t numRequiredDeviceExtns = 1U;
-    constexpr int32_t width = 1024;
-    constexpr int32_t height = 768;
+    constexpr int32_t width = 2560;
+    constexpr int32_t height = 1440;
     uint32_t numPhysicalDevices = 0U;
     uint32_t numInstanceExtensions = 0U;
     uint32_t numDeviceExtensions = 0U;
@@ -88,7 +53,7 @@ int main()
     const char *requiredInstanceExtns[] = {
         "VK_KHR_display",
         "VK_KHR_surface",
-#ifdef WIN32
+#ifdef _WIN32
         "VK_KHR_win32_surface",
 #else
         "VK_KHR_xcb_surface",
@@ -98,9 +63,22 @@ int main()
         "VK_KHR_swapchain"
     };
 
-#ifdef WIN32
+    GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    if (!window) {
+        std::cerr << "Faield to get GLPGWindow instance\n";
+        return -1;
+    }
+
+    if (window->CreateWindow(width, height)) {
+        std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
+    } else {
+        std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+#ifdef _WIN32
+    HWND *hWindow = reinterpret_cast<HWND *>(window->GetWindowHandle());
     HINSTANCE hInstance = GetModuleHandle(NULL);
-    HWND hWindow = CreateWin32Window(width, height);
 #endif
 
     VkResult result;
@@ -132,11 +110,11 @@ int main()
     deviceCreateInfo.enabledExtensionCount = numRequiredDeviceExtns;
     deviceCreateInfo.ppEnabledExtensionNames = requiredDeviceExtns;
 
-#ifdef WIN32
+#ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR win32SurfaceCreateInfo = {};
     win32SurfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     win32SurfaceCreateInfo.hinstance = hInstance;
-    win32SurfaceCreateInfo.hwnd = hWindow;
+    win32SurfaceCreateInfo.hwnd = *hWindow;
 #endif
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
@@ -150,14 +128,16 @@ int main()
     swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 
+    VkSurfaceCapabilitiesKHR surfaceCaps = {};
+
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS) {
         fprintf(stderr, "Failed to Create Vulkan Instance\n");
-    } else {
-        fprintf(stderr, "Created Vulkan Instance\n");
+        return -1;
     }
 
     if (vkEnumeratePhysicalDevices(instance, &numPhysicalDevices, nullptr) != VK_SUCCESS) {
         fprintf(stderr, "Failed to get the number of physical devices present\n");
+        return -1;
     } else {
         fprintf(stderr, "Number of physical devices: %u\n", numPhysicalDevices);
     }
@@ -166,8 +146,7 @@ int main()
 
     if (vkEnumeratePhysicalDevices(instance, &numPhysicalDevices, physicalDevicesArray) != VK_SUCCESS) {
         fprintf(stderr, "Failed to get Physical Device instance\n");
-    } else {
-        fprintf(stderr, "Got Physical device\n");
+        return -1;
     }
 
     physicalDevicePropertiesArray = new VkPhysicalDeviceProperties[numPhysicalDevices];
@@ -183,6 +162,7 @@ int main()
 
     if (vkEnumerateInstanceExtensionProperties(nullptr, &numInstanceExtensions, nullptr) != VK_SUCCESS) {
         fprintf(stderr, "Failed to query number of instance extensions\n");
+        return -1;
     } else {
         fprintf(stderr, "Number of Instance Extensions: %u\n", numInstanceExtensions);
     }
@@ -191,6 +171,7 @@ int main()
 
     if (vkEnumerateInstanceExtensionProperties(nullptr, &numInstanceExtensions, instanceExtnPropArray) != VK_SUCCESS) {
         fprintf(stderr, "Failed to query instance extensions\n");
+        return -1;
     } else {
         for (uint32_t idx = 0U; idx < numInstanceExtensions; idx++) {
             fprintf(stderr, "%s : %u\n", instanceExtnPropArray[idx].extensionName, instanceExtnPropArray[idx].specVersion);
@@ -199,6 +180,7 @@ int main()
 
     if (vkEnumerateDeviceExtensionProperties(physicalDevicesArray[defaultDeviceIdx], nullptr, &numDeviceExtensions, nullptr) != VK_SUCCESS) {
         fprintf(stderr, "Failed to query number of device extensions\n");
+        return -1;
     } else {
         fprintf(stderr, "Number of Device Extensions: %u\n", numDeviceExtensions);
     }
@@ -207,6 +189,7 @@ int main()
 
     if (vkEnumerateDeviceExtensionProperties(physicalDevicesArray[defaultDeviceIdx], nullptr, &numDeviceExtensions, deviceExtnPropArray) != VK_SUCCESS) {
         fprintf(stderr, "Failed to query number of device extensions\n");
+        return -1;
     } else {
         for (uint32_t idx = 0U; idx < numDeviceExtensions; idx++) {
             fprintf(stderr, "%s : %u\n", deviceExtnPropArray[idx].extensionName, deviceExtnPropArray[idx].specVersion);
@@ -223,24 +206,32 @@ int main()
 
     if (vkCreateDevice(physicalDevicesArray[defaultDeviceIdx], &deviceCreateInfo, nullptr, &device) != VK_SUCCESS) {
         fprintf(stderr, "Failed to create VkDevice\n");
-    } else {
-        fprintf(stderr, "Created VkDevice\n");
+        return -1;
     }
 
-#ifdef WIN32
+#ifdef _WIN32
     if (vkCreateWin32SurfaceKHR(instance, &win32SurfaceCreateInfo, nullptr, &surface) != VK_SUCCESS) {
         fprintf(stderr, "Failed to create VkSurface\n");
-    } else {
-        fprintf(stderr, "Created Win32 VkSurface\n");
+        return -1;
     }
 #endif
 
+    
+    if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevicesArray[defaultDeviceIdx], surface,
+                                                  &surfaceCaps) != VK_SUCCESS) {
+        std::cerr << "Failed to get Surface capabilities\n";
+    } else {
+        
+    }
+
     swapchainCreateInfo.surface = surface;
+    std::cerr << "Surface handle value: " << surface << "\n";
+    std::cerr << "Device handle: " << device << "\n";
 
     if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS) {
         fprintf(stderr, "Failed to create VkSwapchain\n");
+        return -1;
     } else {
-        fprintf(stderr, "Created VkSwapchain\n");
     }
 
     delete[] physicalDevicesArray;

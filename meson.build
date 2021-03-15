@@ -26,4 +26,5 @@ endif
 if host_machine.system() == 'windows'
   subdir('d3d11')
   subdir('d3d12')
+  subdir('vulkan')
 endif

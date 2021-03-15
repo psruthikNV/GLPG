@@ -1,7 +1,7 @@
 vulkan_sdk_dir = ''
 
 if host_machine.system() == 'windows'
-  vulkan_sdk_dir = 'C:\\VulkanSDK\\1.2.162.0'
+  vulkan_sdk_dir = 'C:\\VulkanSDK\\1.2.170.0'
 endif
 
 vk_include_path = include_directories(vulkan_sdk_dir + '\include')

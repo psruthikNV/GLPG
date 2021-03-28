@@ -1,5 +1,5 @@
 #pragma once
-#include "GLPGEvent_Enums.hpp"
+#include "../GLPGEvent_Enums.hpp"
 
 namespace GLPG {
     class GLPGEventImpl {

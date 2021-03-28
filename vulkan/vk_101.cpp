@@ -8,6 +8,7 @@
 #include "../include/GLPGWindow.hpp"
 #include "../include/GLPGEvent.hpp"
 #include "../include/utils/vk-print.hpp"
+#include "../include/utils/vk-utils.hpp"
 #undef CreateWindow
 
 int main()
@@ -15,8 +16,6 @@ int main()
     GLPG::GLPGEventLoop eventLoop;
     GLPG::GLPGEvent event;
     constexpr uint32_t defaultDeviceIdx = 0U;
-    constexpr uint32_t numRequiredInstanceExtns = 3U;
-    constexpr uint32_t numRequiredDeviceExtns = 1U;
     constexpr int32_t width = 2560;
     constexpr int32_t height = 1440;
     uint32_t numPhysicalDevices = 0U;
@@ -31,10 +30,23 @@ int main()
 #else
         "VK_KHR_xcb_surface",
 #endif
+#if GLPG_IS_DEBUG
+        "VK_EXT_debug_utils",
+#endif
     };
     const char *requiredDeviceExtns[] = {
         "VK_KHR_swapchain"
     };
+    
+#if GLPG_IS_DEBUG
+    const char *requiredLayers[] = {
+        "VK_LAYER_KHRONOS_validation"
+    };
+#endif
+
+    constexpr uint32_t numRequiredInstanceExtns = array_size(requiredInstanceExtns);
+    constexpr uint32_t numRequiredDeviceExtns = array_size(requiredDeviceExtns);
+    std::cout << "Array size: " << array_size(requiredInstanceExtns) << "\n";
 
     GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
     if (!window) {
@@ -49,6 +61,11 @@ int main()
         return -1;
     }
 
+    if (!eventLoop.InitializeEventLoop()) {
+        std::cerr << "Failed to initialize event loop\n";
+        return -1;
+    }
+
 #ifdef _WIN32
     HWND *hWindow = reinterpret_cast<HWND *>(window->GetWindowHandle());
     HINSTANCE hInstance = GetModuleHandle(NULL);
@@ -59,7 +76,6 @@ int main()
     VkDevice device;
     VkSurfaceKHR surface;
     VkSwapchainKHR swapchain;
-    VkExtent2D swapchainExtent = {width, height};
 
     VkPhysicalDevice *physicalDevicesArray;
     VkPhysicalDeviceProperties *physicalDevicePropertiesArray;
@@ -71,10 +87,16 @@ int main()
     instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceCreateInfo.enabledExtensionCount = numRequiredInstanceExtns;
     instanceCreateInfo.ppEnabledExtensionNames = requiredInstanceExtns;
+#if GLPG_IS_DEBUG
+    instanceCreateInfo.enabledLayerCount = array_size(requiredLayers);
+    instanceCreateInfo.ppEnabledLayerNames = requiredLayers;
+#endif
 
     VkDeviceQueueCreateInfo queueCreateInfo = {};
+    float queuePriority = 1.0F;
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueCount = 1U;
+    queueCreateInfo.pQueuePriorities = &queuePriority;
 
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -82,6 +104,7 @@ int main()
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.enabledExtensionCount = numRequiredDeviceExtns;
     deviceCreateInfo.ppEnabledExtensionNames = requiredDeviceExtns;
+    
 
 #ifdef _WIN32
     VkWin32SurfaceCreateInfoKHR win32SurfaceCreateInfo = {};
@@ -92,19 +115,36 @@ int main()
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.minImageCount = 1U;
     swapchainCreateInfo.imageFormat = VK_FORMAT_R8G8B8A8_UINT;
     swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-    swapchainCreateInfo.imageExtent = swapchainExtent;
     swapchainCreateInfo.imageArrayLayers = 1U;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 
     VkSurfaceCapabilitiesKHR surfaceCaps = {};
+    uint32_t layerPropCount = 0U;
+    VkLayerProperties layerProps[17];
 
-    if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS) {
-        fprintf(stderr, "Failed to Create Vulkan Instance\n");
+    if (vkEnumerateInstanceLayerProperties(&layerPropCount, nullptr) != VK_SUCCESS) {
+        std::cerr << "Failed to get layer prop count\n";
+    } else {
+        std::cerr << "Instance layers: " << layerPropCount << "\n";
+    }
+
+    if (vkEnumerateInstanceLayerProperties(&layerPropCount, layerProps) != VK_SUCCESS) {
+        std::cerr << "Failed to enumerate layer props\n";
+    } else {
+        for (uint32_t idx = 0U; idx < layerPropCount; idx++) {
+            VkPrintVkLayerProperties(layerProps[idx]);
+            std::cout << "\n";
+        }
+    }
+
+    if (auto ret = vkCreateInstance(&instanceCreateInfo, nullptr, &instance); ret != VK_SUCCESS) {
+        std::cerr << "vkCreateInstance failed: " << ret << "\n";
         return -1;
     }
 
@@ -174,12 +214,36 @@ int main()
 
     queuePropArray = new VkQueueFamilyProperties[numDeviceQueues];
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevicesArray[defaultDeviceIdx], &numDeviceQueues, queuePropArray);
-     
+    std::cout << "\t VkQueueFamilyProperties: \n";
     ParseDeviceQueueDetails(numDeviceQueues, queuePropArray);
 
     if (vkCreateDevice(physicalDevicesArray[defaultDeviceIdx], &deviceCreateInfo, nullptr, &device) != VK_SUCCESS) {
         fprintf(stderr, "Failed to create VkDevice\n");
         return -1;
+    }
+    VkQueue queue;
+    vkGetDeviceQueue(device, 0, 0, &queue);
+
+    VkCommandPool cmdPool;
+    VkCommandPoolCreateInfo cmdPoolCreateInfo;
+    cmdPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    cmdPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    cmdPoolCreateInfo.queueFamilyIndex = 0U;
+
+    if (vkCreateCommandPool(device, &cmdPoolCreateInfo, nullptr, &cmdPool) != VK_SUCCESS) {
+        std::cerr << "Failed to create command pool\n";
+        return -1;
+    }
+
+    VkCommandBuffer cmdBuffer;
+    VkCommandBufferAllocateInfo cmdBufferAllocateInfo = {};
+    cmdBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdBufferAllocateInfo.commandPool = cmdPool;
+    cmdBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    cmdBufferAllocateInfo.commandBufferCount = 1U;
+
+    if (vkAllocateCommandBuffers(device, &cmdBufferAllocateInfo, &cmdBuffer) != VK_SUCCESS) {
+        std::cerr << "Failed to allocate command buffer\n";
     }
 
 #ifdef _WIN32
@@ -189,12 +253,24 @@ int main()
     }
 #endif
 
-    
+    VkBool32 surfaceSupport = VK_FALSE;
+    if (vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevicesArray[defaultDeviceIdx], 0U, surface, &surfaceSupport) != VK_SUCCESS) {
+        std::cerr << "vkGetPhysicalDeviceSurfaceSupportKHR failed\n";
+        return -1;
+    } else {
+        if (surfaceSupport != VK_TRUE) {
+            std::cerr << "Queue does not support presents\n";
+            return -1;
+        }
+    }
     if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevicesArray[defaultDeviceIdx], surface,
                                                   &surfaceCaps) != VK_SUCCESS) {
         std::cerr << "Failed to get Surface capabilities\n";
     } else {
+        std::cout << "\t VkSurfaceCapabilitiesKHR: \n";
         VkPrintVkSurfaceCapabilitiesKHR(surfaceCaps);
+        swapchainCreateInfo.imageExtent = surfaceCaps.currentExtent;
+        swapchainCreateInfo.minImageCount = surfaceCaps.minImageCount;
     }
 
     swapchainCreateInfo.surface = surface;
@@ -204,6 +280,54 @@ int main()
         return -1;
     }
 
+    uint32_t swapchainImageCount = 0U;
+    VkImage swapchainImages[2];
+    if (vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, nullptr) != VK_SUCCESS) {
+        std::cerr << "Failed to get number of swapchain images\n";
+        return -1;
+    } else {
+        std::cerr << "Number of swapchain images: " << swapchainImageCount << "\n";
+    }
+
+    if (vkGetSwapchainImagesKHR(device, swapchain, &swapchainImageCount, swapchainImages) != VK_SUCCESS) {
+        std::cerr << "Failed to acquire swapchain images\n";
+        return -1;
+    }
+
+    uint32_t backbufferIdx = 0U;
+    if (vkAcquireNextImageKHR(device, swapchain, 0U, VK_NULL_HANDLE, VK_NULL_HANDLE,
+                              &backbufferIdx) != VK_SUCCESS) {
+        std::cerr << "Failed to get backbuffer index\n";
+    } else {
+        std::cerr << "Backbuffer idx: " << backbufferIdx << "\n";
+    }
+
+    VkClearColorValue clearColorValue = {};
+    uint32_t clearColorValues[4] = {0U, 0U, 255U, 0U};
+    clearColorValue.uint32[0] = 0U;
+    VkCommandBufferBeginInfo cmdBufferBeginInfo = {};
+    VkSubmitInfo queueSubmitInfo = {};
+    queueSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    queueSubmitInfo.commandBufferCount = 1U;
+    queueSubmitInfo.pCommandBuffers = &cmdBuffer;
+    cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+        if (vkAcquireNextImageKHR(device, swapchain, 0U, VK_NULL_HANDLE, VK_NULL_HANDLE,
+                              &backbufferIdx) != VK_SUCCESS) {
+            std::cerr << "Failed to get backbuffer index\n";
+        }
+        if (vkBeginCommandBuffer(cmdBuffer, &cmdBufferBeginInfo) != VK_SUCCESS) {
+            std::cerr << "Failed to translate cmd buffer to begin state\n";
+            return -1;
+        }
+        vkCmdClearColorImage(cmdBuffer, swapchainImages[backbufferIdx], VK_IMAGE_LAYOUT_GENERAL,
+                             &clearColorValue, 1, nullptr);
+        if (vkQueueSubmit(queue, 1U, &queueSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+            std::cerr << "Queue submission failed\n";
+            return -1;
+        }
+        
+    }
     delete[] physicalDevicesArray;
     delete[] physicalDevicePropertiesArray;
     delete[] instanceExtnPropArray;

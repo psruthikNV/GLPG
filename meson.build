@@ -5,6 +5,14 @@ project('glpg', 'cpp',
 glpg_include_path = include_directories('./include')
 glpg_compiler = meson.get_compiler('cpp')
 buildTests = get_option('enable_tests')
+buildType = get_option('buildtype')
+
+if buildType == 'debug'
+  message('GLPG Build Log: Debug build')
+  add_project_arguments('-DGLPG_IS_DEBUG', language : 'cpp')
+elif buildType == 'release'
+  message('GLPG Build Log: Release build')
+endif
 
 if host_machine.system() == 'linux'
   dependenciesList = [glpg_compiler.find_library('xcb')]

@@ -203,3 +203,11 @@ static void VkPrintVkSurfaceCapabilitiesKHR(const VkSurfaceCapabilitiesKHR &s)
     std::cout << "VkSurfaceCapabilitiesKHR.supportedUsageFlags: \n";
     VkPrintVkImageUsageFlags(s.supportedUsageFlags);
 }
+
+static void VkPrintVkLayerProperties(const VkLayerProperties &type)
+{
+    std::cout << "VkLayerProperties.layerName: " << type.layerName << "\n";
+    std::cout << "VkLayerProperties.specVersion: " << type.specVersion << "\n";
+    std::cout << "VkLayerProperties.implementationVersion: " << type.implementationVersion << "\n";
+    std::cout << "VkLayerProperties.description: " << type.description << "\n";
+}

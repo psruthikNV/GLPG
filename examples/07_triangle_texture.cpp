@@ -16,24 +16,29 @@
 #include "3rdparty/stb_image.h"
 
 const float vertexData[] = {
-    -0.5f, -0.5f, 0.0f, 0.0F, 0.0F,
-    0.5f, -0.5f, 0.0f, 1.0F, 0.0F,
-    0.0f, 0.5f, 0.0f, 0.5F, 1.0F
+    -0.5f, -0.5f, 0.0f, 0.0F, 0.0F, 0.0F,
+    0.5f, -0.5f, 0.0f, 1.0F, 0.0F, 0.0F,
+    0.0f, 0.5f, 0.0f, 0.5F, 1.0F, 0.0F
 };
 
 const char *vertexShaderSource =
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
+    "layout (location = 1) in vec2 textureCoordinates;\n"
+    "out vec2 outTexCoords;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(vertexPosition, 1.0);\n"
+    "   outTexCoords = textureCoordinates;\n"
     "}\0";
 const char *fragmentShaderSource = 
     "#version 450 core\n"
     "out vec4 fragmentColor;\n"
+    "in vec2 outTexCoords;\n"
+    "uniform sampler2D texSampler;\n"
     "void main()\n"
     "{\n"
-    "   fragmentColor = vec4(1.0, 0.0, 0.0, 0.0);\n"
+    "   fragmentColor = texture(texSampler, outTexCoords);\n"
     "}\0";
 
 int main()
@@ -58,7 +63,7 @@ int main()
         return -1;
     }
 
-    if (window->CreateWindow(640, 480)) {
+    if (window->CreateWindow(1024, 768)) {
         std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
     } else {
         std::cout << "Failed to create native window\n";
@@ -111,14 +116,21 @@ int main()
         std::cerr << "glTexImage2D failed\n";
         return -1;
     }
+    // The default value of GL_TEXTURE_MIN_FILTER is GL_NEAREST_MIPMAP_LINEAR
+    // and requries mipmaps to be generated.
+    //
+    // Set GL_TEXTURE_MIN_FILTER to GL_LINEAR to avoid mipmap generation.
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glEnable(GL_STENCIL_TEST);
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 3);

@@ -7,6 +7,17 @@
 #include "../internal/GLPGContextImpl_GL.hpp"
 
 namespace GLPG {
+
+    bool CheckGLError() {
+        bool ret = true;
+        if (GLenum error = glGetError(); error != GL_NO_ERROR) {
+            std::cerr << "GLPG GL Error: " << std::hex << error << std::dec << "\n";
+            ret = false;
+        }
+
+        return ret;
+    }
+
     bool compileShader(int shaderObject, const char *shaderSource) {
         int success = GL_FALSE;
         glShaderSource(shaderObject, 1, &shaderSource, nullptr);

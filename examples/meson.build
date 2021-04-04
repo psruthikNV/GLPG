@@ -29,3 +29,7 @@ executable('06_monkey_indexed', '06_monkey_indexed.cpp',
 executable('07_triangle_texture', '07_triangle_texture.cpp',
            include_directories : glpg_include_path,
            link_with : libglpg)
+
+executable('08_cube_texture', '08_cube_texture.cpp',
+           include_directories : glpg_include_path,
+           link_with : libglpg)

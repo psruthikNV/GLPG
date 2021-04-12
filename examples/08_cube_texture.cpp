@@ -31,7 +31,7 @@ vec3_f trianglePositions[] = {
   vec3_f({-1.3f,  1.0f, -1.5f}),
 };
 
-/*
+
 const float vertexData[] = {
 
     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -75,8 +75,8 @@ const float vertexData[] = {
      0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
     -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
     -0.5f, -0.5f,  0.5f,  0.0f, 0.0f
-};*/
-
+};
+/*
 const float vertexData[] = {
     -0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -120,7 +120,7 @@ const float vertexData[] = {
     -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 };
-
+*/
 const char *vertexShaderSource = 
     "#version 450 core\n"
     "layout (location = 0) in vec3 vertexPosition;\n"
@@ -167,6 +167,8 @@ int main(int argc, char **argv)
     int textureWidth = 0;
     int textureHeight = 0;
     int textureComponents = 0;
+    uint32_t width = 2560U;
+    uint32_t height = 1440U;
 
     GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
     if (!window) {
@@ -174,7 +176,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    if (window->CreateWindow(800, 600)) {
+    if (window->CreateWindow(width, height)) {
         std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
     } else {
         std::cout << "Failed to create native window\n";
@@ -248,7 +250,7 @@ int main(int argc, char **argv)
     vec3_f upVector = {0.0f, 1.0f, 0.0f};
     vec3_f viewVector = {0.0f, 0.0f, 1.0f};
     vec3_f translateVector = {0.0f, 0.0f, 0.0f};
-    mat4x4_f projectionMatrix = gluPerspective(45.0f, 800.0f / 600.0f, 1.0f, 100.0f);
+    mat4x4_f projectionMatrix = gluPerspective(45.0f, static_cast<float>(width) / static_cast<float>(height), 0.1f, 100.0f);
     mat4x4_f modelMatrix;
     mat4x4_f viewMatrix;
 
@@ -256,7 +258,14 @@ int main(int argc, char **argv)
     viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape){
-        eyePosition = {0.0F, 0.0F, 3.0F};
+        if (event == GLPG::GLPGEvent::MouseWheel_Up) {
+            eyePosition[2] += 1.1F;
+        } else if (event == GLPG::GLPGEvent::MouseWheel_Down) {
+            eyePosition[2] -= 1.1F;
+        }
+        if (eyePosition[2] < 1.1F) {
+            eyePosition[2] = 1.1F;
+        }
         viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < array_size(trianglePositions); i++) {

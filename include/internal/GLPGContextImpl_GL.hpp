@@ -45,6 +45,14 @@ extern PFNGLSTENCILFILLPATHNVPROC glStencilFillPathNV;
 extern PFNGLSTENCILSTROKEPATHNVPROC glStencilStrokePathNV;
 extern PFNGLCOVERFILLPATHNVPROC glCoverFillPathNV;
 extern PFNGLCOVERSTROKEPATHNVPROC glCoverStrokePathNV;
+extern PFNGLGENFRAMEBUFFERSPROC glGenFrameBuffers;
+extern PFNGLBINDFRAMEBUFFERPROC glBindFrameBuffer;
+extern PFNGLGENRENDERBUFFERSPROC glGenRenderBuffers;
+extern PFNGLBINDRENDERBUFFERPROC glBindRenderBuffer;
+extern PFNGLRENDERBUFFERSTORAGEPROC glRenderBufferStorage;
+extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFrameBuffeRenderBuffer;
+extern PFNGLFRAMEBUFFERTEXTUREPROC glFrameBufferTexture;
+extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFrameBufferStatus;
 
 namespace GLPG {
     class GLPGContextImpl_GL : public GLPGContextImpl {

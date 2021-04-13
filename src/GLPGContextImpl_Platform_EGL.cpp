@@ -38,6 +38,14 @@ PFNGLSTENCILFILLPATHNVPROC glStencilFillPathNV;
 PFNGLSTENCILSTROKEPATHNVPROC glStencilStrokePathNV;
 PFNGLCOVERFILLPATHNVPROC glCoverFillPathNV;
 PFNGLCOVERSTROKEPATHNVPROC glCoverStrokePathNV;
+PFNGLGENFRAMEBUFFERSPROC glGenFrameBuffers;
+PFNGLBINDFRAMEBUFFERPROC glBindFrameBuffer;
+PFNGLGENRENDERBUFFERSPROC glGenRenderBuffers;
+PFNGLBINDRENDERBUFFERPROC glBindRenderBuffer;
+PFNGLRENDERBUFFERSTORAGEPROC glRenderBufferStorage;
+PFNGLFRAMEBUFFERRENDERBUFFERPROC glFrameBuffeRenderBuffer;
+PFNGLFRAMEBUFFERTEXTUREPROC glFrameBufferTexture;
+PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFrameBufferStatus;
 
 namespace GLPG {
     void *GLPGContextImpl_Platform_EGL::LoadGLFunction(const char *name) {
@@ -84,6 +92,14 @@ namespace GLPG {
         glStencilFillPathNV = (PFNGLSTENCILFILLPATHNVPROC)LoadGLFunction("glStencilFillPathNV");
         glStencilStrokePathNV = (PFNGLSTENCILSTROKEPATHNVPROC)LoadGLFunction("glStencilStrokePathNV");
         glCoverFillPathNV = (PFNGLCOVERFILLPATHNVPROC)LoadGLFunction("glCoverFillPathNV");
+        glGenFrameBuffers = (PFNGLGENFRAMEBUFFERSPROC)LoadGLFunction("glGenFrameBuffers");
+        glBindFrameBuffer = (PFNGLBINDFRAMEBUFFERPROC)LoadGLFunction("glBindFrameBuffer");
+        glGenRenderBuffers = (PFNGLGENRENDERBUFFERSPROC)LoadGLFunction("glGenRenderBuffers");
+        glBindRenderBuffer = (PFNGLBINDRENDERBUFFERPROC)LoadGLFunction("glBindRenderBuffer");
+        glRenderBufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)LoadGLFunction("glRenderBufferStorage");
+        glFrameBuffeRenderBuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)LoadGLFunction("glFrameBuffeRenderBuffer");
+        glFrameBufferTexture = (PFNGLFRAMEBUFFERTEXTUREPROC)LoadGLFunction("glFrameBufferTexture");
+        glCheckFrameBufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)LoadGLFunction("glCheckFrameBufferStatus");
 
     }
 

@@ -13,6 +13,7 @@ namespace GLPG {
         private:
             HGLRC tempHglrc;
             HGLRC hGlrc;
+            HDC temphDc;
             HDC hDc;
             int pixelFormat;
 

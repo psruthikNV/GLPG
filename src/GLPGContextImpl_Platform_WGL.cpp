@@ -122,20 +122,20 @@ namespace GLPG {
             0,0,0
 	    };
 
-        if (!(pixelFormat = ChoosePixelFormat(hDc, &pfd))) {
+        if (!(pixelFormat = ChoosePixelFormat(temphDc, &pfd))) {
             std::cout << "Failed to choose pixel format" << std::endl;
             return false;
         }
-        if (!SetPixelFormat(hDc, pixelFormat, &pfd)) {
+        if (!SetPixelFormat(temphDc, pixelFormat, &pfd)) {
             std::cout << "Failed to set pixel format" << std::endl;
             return false;
         }
-        if (!(tempHglrc = wglCreateContext(hDc))) {
+        if (!(tempHglrc = wglCreateContext(temphDc))) {
             std::cout << "Failed to create WGL Context" << std::endl;
             return false;
         }
 
-        if (!wglMakeCurrent(hDc, tempHglrc)) {
+        if (!wglMakeCurrent(temphDc, tempHglrc)) {
             std::cout << "Failed to make the WGL Context current" << std::endl;
             return false;
         }
@@ -192,6 +192,7 @@ namespace GLPG {
             return false;
         }
         hDc = windowImpl->GetWin32HDC();
+        temphDc = windowImpl->GetTempWin32HDC();
 
         if (!CreateDummyGLContext()) {
             std::cerr << "Failed to create dummy WGL Context\n";

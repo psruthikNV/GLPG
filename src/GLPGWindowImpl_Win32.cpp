@@ -49,6 +49,17 @@ namespace GLPG {
             ShowWindow(hWindow, SW_SHOWNORMAL);
         }
 
+        temphWindow = CreateWindowA(wc.lpszClassName, "Test", WS_OVERLAPPEDWINDOW,
+                                    CW_USEDEFAULT, CW_USEDEFAULT, windowRect.right - windowRect.left,
+                                    windowRect.bottom - windowRect.top, nullptr, nullptr, hInstance,
+                                    nullptr);
+        if (!temphWindow) {
+            std::cerr << "GLPG ERROR: Failed to create temp native window\n";
+            return false;
+        } else {
+            temphDc = GetDC(temphWindow);
+        }
+
         return true;
     }
 
@@ -65,8 +76,11 @@ namespace GLPG {
     }
 
     HDC& GLPGWindowImpl_Win32::GetWin32HDC() {
-        return 
-        hDc;
+        return hDc;
+    }
+
+    HDC& GLPGWindowImpl_Win32::GetTempWin32HDC() {
+        return temphDc;
     }
 
     void* GLPGWindowImpl_Win32::GetWindowHandle() {

@@ -11,7 +11,8 @@
 #include <dxgi1_2.h>
 #include <dxgi1_3.h>
 #include <dxgi1_4.h>
-#undef CreateWindow
+#include <wrl/client.h>
+#undef CreateWindow // We require this since GLPG::CreateWindow collides with the Win32 API
 
 template <typename T>
 class counter {
@@ -22,9 +23,9 @@ public:
     // Perhaps the most stupidest op overload ever.
     T operator++() {
         if (performAddition) {
-            m_val += 0.001;
+            m_val += T(0.001);
         } else {
-            m_val -= 0.001;
+            m_val -= T(0.001);
         }
 
         if (m_val > T(1)|| m_val <= T(0)) {
@@ -39,6 +40,7 @@ private:
 };
 
 using counter_f = counter<float>;
+using Microsoft::WRL::ComPtr;
 
 int main() {
     HRESULT ret;
@@ -51,10 +53,10 @@ int main() {
     counter_f red(dist(gen));
     counter_f green(dist(gen));
     counter_f blue(dist(gen));
-    uint32_t width = 800U;
-    uint32_t height = 600U;
+    uint32_t width = 2560U;
 
     GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
+    uint32_t height = 1440U;
     if (!window) {
         std::cerr << "Failed to create GLPGWindow\n";
         return -1;
@@ -73,19 +75,20 @@ int main() {
     }
 
     HWND *hWindow = reinterpret_cast<HWND *>(window->GetWindowHandle());
+    if (!hWindow) {
+        std::cerr << "Failed to get handle to native window\n";
+    }
 
-    ID3D12Debug *debugInterface;
-    if (D3D12GetDebugInterface(__uuidof(ID3D12Debug), (void **)&debugInterface) != S_OK) {
+    ComPtr<ID3D12Debug> pdebugInterface;
+    if (D3D12GetDebugInterface(IID_PPV_ARGS(&pdebugInterface)) != S_OK) {
         std::cerr << "Failed to get D3d12 debug interface\n";
         return -1;
     } else {
-        std::cerr << "Got d3d12 debug interface\n";
-        debugInterface->EnableDebugLayer();
+        pdebugInterface->EnableDebugLayer();
     }
 
-    IDXGIFactory* pdxgiFactory = nullptr;
-    ret = CreateDXGIFactory(__uuidof(IDXGIFactory),
-                            reinterpret_cast<void**>(&pdxgiFactory));
+    ComPtr<IDXGIFactory> pdxgiFactory = nullptr;
+    ret = CreateDXGIFactory(IID_PPV_ARGS(&pdxgiFactory));
 
     if (ret) {
         std::cout << "Failed to create DXGIFactory instance\n";
@@ -121,21 +124,42 @@ int main() {
         }
     }
 
-    ID3D12Device *pD3d12Device;
+    uint32_t numOutputs = 0U;
+    IDXGIOutput* pOutput;
+    std::vector<IDXGIOutput*> vOutputs;
+    while(adapters[adapterIdxInUse]->EnumOutputs(numOutputs, &pOutput) != 
+          DXGI_ERROR_NOT_FOUND) {
+        vOutputs.push_back(pOutput);
+        ++numOutputs;
+    }
+
+
+    for (uint32_t idx = 0U; idx < numOutputs; idx++) {
+        DXGI_OUTPUT_DESC outputDesc = {};
+        if (vOutputs[idx]->GetDesc(&outputDesc) == S_OK) {
+            std::cout << "Name: " << outputDesc.DeviceName << "\n";
+            std::cout << "Rect Left: " << outputDesc.DesktopCoordinates.left << " Right: " << outputDesc.DesktopCoordinates.right << "\n";
+            std::cout << "Rect Top: " << outputDesc.DesktopCoordinates.top << " Bottom: " << outputDesc.DesktopCoordinates.bottom << "\n";
+        }
+
+    }
+
+    ComPtr<ID3D12Device> pD3d12Device;
 
     if (D3D12CreateDevice(adapters[adapterIdxInUse], D3D_FEATURE_LEVEL_12_0,
-                          __uuidof(ID3D12Device), (void **)&pD3d12Device) != S_OK) {
+                          IID_PPV_ARGS(&pD3d12Device)) != S_OK) {
         std::cerr << "Failed to create D3d12 device\n";
     }
 
-    ID3D12InfoQueue* debugInfoQueue;
-    ret = pD3d12Device->QueryInterface(__uuidof(ID3D12InfoQueue), (void **)&debugInfoQueue);
+    ComPtr<ID3D12InfoQueue> pdebugInfoQueue;
+    ret = pD3d12Device->QueryInterface(__uuidof(ID3D12InfoQueue),
+          reinterpret_cast<void **>(pdebugInfoQueue.GetAddressOf()));
     if (ret != S_OK) {
         std::cerr << "Failed to query Info Queue\n";
         return -1;
     }
 
-    ret = debugInfoQueue->PushEmptyStorageFilter();
+    ret = pdebugInfoQueue->PushEmptyStorageFilter();
     if (ret != S_OK) {
         std::cerr << "Failed to push empty filter onto info queue\n";
         return -1;
@@ -147,10 +171,10 @@ int main() {
         D3D12_COMMAND_QUEUE_FLAG_NONE,
         0U
     };
-    ID3D12CommandQueue *pCommandQueue;
+    ComPtr<ID3D12CommandQueue> pCommandQueue;
 
-    if (pD3d12Device->CreateCommandQueue(&commandQueueDesc, __uuidof(ID3D12CommandQueue),
-                                         (void **)&pCommandQueue) != S_OK) {
+    if (pD3d12Device->CreateCommandQueue(&commandQueueDesc, 
+                                         IID_PPV_ARGS(&pCommandQueue)) != S_OK) {
         std::cerr << "Failed to create command queue\n";
         return -1;
     }
@@ -170,25 +194,23 @@ int main() {
     swapchainDesc.Stereo = FALSE;
     swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;   
 
-    IDXGIFactory2* pdxgiFactory2;
+    ComPtr<IDXGIFactory2> pdxgiFactory2;
 
-    adapters[adapterIdxInUse]->GetParent(__uuidof(IDXGIFactory2), (void**)& pdxgiFactory2);
+    adapters[adapterIdxInUse]->GetParent(IID_PPV_ARGS(&pdxgiFactory2));
     if (!pdxgiFactory2) {
         std::cout << "Failed to get pdxgifactory 2\n";
         return -1;
     }
 
-    IDXGISwapChain1* pSwapchain = nullptr;
-    ret = pdxgiFactory2->CreateSwapChainForHwnd(pCommandQueue, *hWindow, &swapchainDesc, NULL, NULL, &pSwapchain);
+    ComPtr<IDXGISwapChain1> pSwapchain;
+    ret = pdxgiFactory2->CreateSwapChainForHwnd(pCommandQueue.Get(), *hWindow, &swapchainDesc, NULL, NULL, &pSwapchain);
     if (ret != S_OK) {
         std::cout << "Swapchain creation failed due to : " << std::hex << ret << std::dec << "\n";
         return -1;
-    } else {
-        std::cerr << "Created swapchain\n";
     }
 
-    IDXGISwapChain3 *pSwapchain3;
-    ret = pSwapchain->QueryInterface(__uuidof(IDXGISwapChain3), (void **)&pSwapchain3);
+    ComPtr<IDXGISwapChain3> pSwapchain3;
+    ret = pSwapchain->QueryInterface(IID_PPV_ARGS(&pSwapchain3));
     if (ret != S_OK) {
         std::cerr << "Failed to query IDXGISwapChain3\n";
     }
@@ -203,22 +225,18 @@ int main() {
     ret = pD3d12Device->CreateDescriptorHeap(&rtvDescHeap, __uuidof(ID3D12DescriptorHeap), (void **)&pRtvDescHeap);
     if (ret != S_OK) {
         std::cerr << "Failed to create RTV Descriptor heap\n";
-    } else {
-        std::cerr << "Created RTV Desc heap\n";
     }
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtvDescHandle = pRtvDescHeap->GetCPUDescriptorHandleForHeapStart();
     uint32_t rtvDescIncrementSize = pD3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-    std::cout << "rtvDescIncrementSize: " << rtvDescIncrementSize << "\n";
-    ID3D12Resource *swapchainBuffers[2];
+    ComPtr<ID3D12Resource> pswapchainBuffers[2];
 
     for (uint32_t idx = 0; idx < 2; idx++) {
-        ret = pSwapchain3->GetBuffer(idx, __uuidof(ID3D12Resource), (void **)&swapchainBuffers[idx]);
+        ret = pSwapchain3->GetBuffer(idx, IID_PPV_ARGS(&pswapchainBuffers[idx]));
         if (ret != S_OK) {
             std::cerr << "Failed to get buffer\n";
         } else {
-            std::cerr << "Got buffer\n";
-            pD3d12Device->CreateRenderTargetView(swapchainBuffers[idx], nullptr, rtvDescHandle);
+            pD3d12Device->CreateRenderTargetView(pswapchainBuffers[idx].Get(), nullptr, rtvDescHandle);
             rtvDescHandle.ptr += rtvDescIncrementSize;
         }
     }
@@ -227,23 +245,19 @@ int main() {
         return -1;
     }
 
-    ID3D12CommandAllocator *pCmdAllocator;
-    ret = pD3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator),
-                                               (void **)&pCmdAllocator);
+    ComPtr<ID3D12CommandAllocator> pCmdAllocator;
+    ret = pD3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&pCmdAllocator));
     if (ret != S_OK) {
         std::cerr << "Failed to create command allocator\n";
         return -1;
-    } else {
-        std::cerr << "Created command allocator\n";
     }
 
-    ID3D12GraphicsCommandList *pCmdList;
-    ret = pD3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, pCmdAllocator, nullptr, __uuidof(ID3D12CommandList), (void **)&pCmdList);
+    ComPtr<ID3D12GraphicsCommandList> pCmdList;
+    ret = pD3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                          pCmdAllocator.Get(), nullptr, IID_PPV_ARGS(&pCmdList));
     if (ret != S_OK) {
         std::cerr << "Failed to create command list\n";
         return -1;
-    } else {
-        std::cerr << "Created command list\n";
     }
 
     ret = pCmdList->Close();
@@ -252,23 +266,20 @@ int main() {
         return -1;
     }
 
-    ID3D12Fence *pFence;
+    ComPtr<ID3D12Fence> pFence;
     uint32_t initialFenceValue = 0U;
     uint32_t signaledFenceValue = initialFenceValue + 1U;
-    ret = pD3d12Device->CreateFence(initialFenceValue, D3D12_FENCE_FLAG_NONE, __uuidof(ID3D12Fence), (void **)&pFence);
+    ret = pD3d12Device->CreateFence(initialFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&pFence));
     if (ret != S_OK) {
         std::cerr << "Failed to create D3d12 fence\n";
         return -1;
-    } else {
-        std::cerr << "Created D3D12 Fence\n";
     }
 
-    HANDLE fenceEvent;
-    
     // Create an unsignaled event
-    fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     if (fenceEvent == nullptr) {
         std::cerr << "Failed to create event\n";
+        return -1;
     }
 
     float colors[4];
@@ -285,14 +296,14 @@ int main() {
             goto fail;
         }
 
-        ret = pCmdList->Reset(pCmdAllocator, nullptr);
+        ret = pCmdList->Reset(pCmdAllocator.Get(), nullptr);
         if (ret != S_OK) {
             std::cerr << "failed to reset command list\n";
             goto fail;
         }
 
         D3D12_RESOURCE_TRANSITION_BARRIER rtvPreTransationBarrier = {
-            swapchainBuffers[backBufferIdx],
+            pswapchainBuffers[backBufferIdx].Get(),
             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
             D3D12_RESOURCE_STATE_PRESENT,
             D3D12_RESOURCE_STATE_RENDER_TARGET
@@ -311,7 +322,7 @@ int main() {
         pCmdList->ClearRenderTargetView(currentRtvHandle, colors, 0, nullptr);
 
         D3D12_RESOURCE_TRANSITION_BARRIER rtvPostTransationBarrier = {
-            swapchainBuffers[backBufferIdx],
+            pswapchainBuffers[backBufferIdx].Get(),
             D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
             D3D12_RESOURCE_STATE_RENDER_TARGET,
             D3D12_RESOURCE_STATE_PRESENT
@@ -330,7 +341,7 @@ int main() {
         }
 
         ID3D12CommandList *ppCmdList;
-        ret = pCmdList->QueryInterface(__uuidof(ID3D12CommandList), (void **)&ppCmdList);
+        ret = pCmdList->QueryInterface(IID_PPV_ARGS(&ppCmdList));
         if (ret != S_OK) {
             std::cerr << "Failed to get cmdlist\n";
             goto fail;
@@ -343,7 +354,7 @@ int main() {
             goto fail;
         }
 
-        ret = pCommandQueue->Signal(pFence, signaledFenceValue);
+        ret = pCommandQueue->Signal(pFence.Get(), signaledFenceValue);
         if (ret != S_OK) {
             std::cerr << "Failed to signal fence\n";
             goto fail;
@@ -361,13 +372,13 @@ int main() {
     }
 
 fail:
-    uint64_t messageCount = debugInfoQueue->GetNumStoredMessages();
+    uint64_t messageCount = pdebugInfoQueue->GetNumStoredMessages();
     for (uint64_t idx = 0U; idx < messageCount; idx++) {
         SIZE_T message_size = 0;
-        debugInfoQueue->GetMessage(idx, nullptr, &message_size); //get the size of the message
+        pdebugInfoQueue->GetMessage(idx, nullptr, &message_size); //get the size of the message
 
         D3D12_MESSAGE* message = (D3D12_MESSAGE*) malloc(message_size); //allocate enough space
-        ret = debugInfoQueue->GetMessage(idx, message, &message_size);
+        ret = pdebugInfoQueue->GetMessage(idx, message, &message_size);
         if (ret != S_OK) {
             std::cerr << "Failed to get any message\n";
         } else {
@@ -375,7 +386,5 @@ fail:
         }
         free(message);
     }
-    debugInfoQueue->ClearStoredMessages();
-
-
+    pdebugInfoQueue->ClearStoredMessages();
 }

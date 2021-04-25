@@ -49,6 +49,7 @@ PFNGLFRAMEBUFFERTEXTUREPROC glFramebufferTexture;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
+PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
 
 namespace GLPG {
     void *GLPGContextImpl_Platform_WGL::LoadGLFunction(const char *name) {
@@ -111,6 +112,7 @@ namespace GLPG {
         glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)LoadGLFunction("glCheckFramebufferStatus");
         glActiveTexture = (PFNGLACTIVETEXTUREPROC)LoadGLFunction("glActiveTexture");
         glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)LoadGLFunction("glFramebufferTexture2D");
+        glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)LoadGLFunction("glDebugMessageCallback");
     }
 
     bool GLPGContextImpl_Platform_WGL::LoadWGLFunctionPointers() {
@@ -194,7 +196,7 @@ namespace GLPG {
         {
             WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
             WGL_CONTEXT_MINOR_VERSION_ARB, 6,
-            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
             WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
             0
         };

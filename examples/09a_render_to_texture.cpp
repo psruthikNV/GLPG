@@ -17,6 +17,19 @@
 #include "3rdparty/stb_image.h"
 
 using namespace GLPG;
+void
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
 
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}), 
@@ -183,6 +196,9 @@ int main(int argc, char **argv)
     GLuint modelMatrixLocation = 0;
     GLuint cameraMatrixLocation = 0;
     GLuint viewMatrixLocation = 0;
+    GLuint modelMatrixLocation_depth = 0;
+    GLuint viewMatrixLocation_depth = 0;
+    GLuint projectionMatrixLocation_depth = 0;
     GLuint projectionMatrixLocation = 0;
     GLuint frameBufferObj = 0U;
     GLPGContext context;
@@ -215,6 +231,7 @@ int main(int argc, char **argv)
         return -1;
     } else {
         glEnable(GL_DEPTH_TEST);
+        glDebugMessageCallback( MessageCallback, 0 );
     }
 
     if (!eventLoop.InitializeEventLoop()) {
@@ -310,7 +327,7 @@ int main(int argc, char **argv)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    
+    glBindTexture(GL_TEXTURE_2D, 0);
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -322,6 +339,9 @@ int main(int argc, char **argv)
     modelMatrixLocation = glGetUniformLocation(programObj, "modelMatrix");
     viewMatrixLocation = glGetUniformLocation(programObj, "viewMatrix");
     projectionMatrixLocation = glGetUniformLocation(programObj, "projectionMatrix");
+    modelMatrixLocation_depth = glGetUniformLocation(depthProgramObj, "modelMatrix");
+    viewMatrixLocation_depth = glGetUniformLocation(depthProgramObj, "viewMatrix");
+    projectionMatrixLocation_depth = glGetUniformLocation(depthProgramObj, "projectionMatrix");
     vec3_f eyePosition = {0.0f, 0.0f, 3.0f};
     vec3_f upVector = {0.0f, 1.0f, 0.0f};
     vec3_f viewVector = {0.0f, 0.0f, 1.0f};
@@ -334,6 +354,7 @@ int main(int argc, char **argv)
     viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, textureObj);
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape){
         if (event == GLPG::GLPGEvent::MouseWheel_Up) {
             eyePosition[2] += 1.1F;
@@ -348,14 +369,14 @@ int main(int argc, char **argv)
         // Depth pass
         glUseProgram(depthProgramObj);
         glBindFramebuffer(GL_FRAMEBUFFER, frameBufferObj);
-        glClearDepth(0.5F);
+        glClearDepth(1.0F);
         glClear(GL_DEPTH_BUFFER_BIT);
         for (int i = 0; i < array_size(trianglePositions); i++) {
             modelMatrix.identity();
             modelMatrix = translate(modelMatrix, trianglePositions[i]);
-            glUniformMatrix4fv(modelMatrixLocation, 1, GL_TRUE, modelMatrix.data());
-            glUniformMatrix4fv(viewMatrixLocation, 1, GL_TRUE, viewMatrix.data());
-            glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
+            glUniformMatrix4fv(modelMatrixLocation_depth, 1, GL_TRUE, modelMatrix.data());
+            glUniformMatrix4fv(viewMatrixLocation_depth, 1, GL_TRUE, viewMatrix.data());
+            glUniformMatrix4fv(projectionMatrixLocation_depth, 1, GL_TRUE, projectionMatrix.data());
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
         glClearDepth(1.0F);

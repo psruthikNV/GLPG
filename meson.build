@@ -7,7 +7,7 @@ glpg_compiler = meson.get_compiler('cpp')
 buildTests = get_option('enable_tests')
 buildType = get_option('buildtype')
 
-if buildType == 'debug'
+if buildType == 'debug'or buildType == 'debugoptimized'
   message('GLPG Build Log: Debug build')
   add_project_arguments('-DGLPG_IS_DEBUG', language : 'cpp')
 elif buildType == 'release'

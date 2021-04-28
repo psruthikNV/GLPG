@@ -17,19 +17,6 @@
 #include "3rdparty/stb_image.h"
 
 using namespace GLPG;
-void
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
-{
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity, message );
-}
 
 vec3_f trianglePositions[] = {
   vec3_f({0.0f,  0.0f,  0.0f}), 
@@ -231,7 +218,6 @@ int main(int argc, char **argv)
         return -1;
     } else {
         glEnable(GL_DEPTH_TEST);
-        glDebugMessageCallback( MessageCallback, 0 );
     }
 
     if (!eventLoop.InitializeEventLoop()) {

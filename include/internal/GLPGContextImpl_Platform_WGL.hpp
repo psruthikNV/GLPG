@@ -16,6 +16,7 @@ namespace GLPG {
             HDC temphDc;
             HDC hDc;
             int pixelFormat;
+            int32_t defaultSwapInterval = 0;
 
             void *LoadGLFunction(const char *name);
             void LoadGLFunctionPointers();

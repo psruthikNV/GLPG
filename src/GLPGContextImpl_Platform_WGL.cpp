@@ -39,6 +39,8 @@ PFNGLCOVERFILLPATHNVPROC glCoverFillPathNV;
 PFNGLCOVERSTROKEPATHNVPROC glCoverStrokePathNV;
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
+PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT;
 PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
@@ -62,8 +64,6 @@ namespace GLPG {
                 std::cerr << "GLPG ERROR: Failed to load GL Function: " << name << std::endl;
                 return nullptr;
             }
-        } else {
-            std::cerr << "GLPG INFO: Found " << name << " via wglGetProcAddress\n";
         }
         return f;
     }
@@ -118,6 +118,8 @@ namespace GLPG {
     bool GLPGContextImpl_Platform_WGL::LoadWGLFunctionPointers() {
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)LoadGLFunction("wglChoosePixelFormatARB");
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)LoadGLFunction("wglCreateContextAttribsARB");
+    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)LoadGLFunction("wglSwapIntervalEXT");
+    wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)LoadGLFunction("wglGetSwapIntervalEXT");
 
     if (!wglChoosePixelFormatARB || !wglCreateContextAttribsARB) {
         std::cout << "Failed to load required WGL Functions" << std::endl;
@@ -231,6 +233,9 @@ namespace GLPG {
         LoadGLFunctionPointers();
         std::cerr << "GLPG INFO: GL Version: " << glGetString(GL_VERSION) << std::endl;
         std::cerr << "GLPG INFO: GPU: " << glGetString(GL_RENDERER) << std::endl;
+        if (wglGetSwapIntervalEXT() == 1) {
+            wglSwapIntervalEXT(defaultSwapInterval);
+        }
         return true;
     }
 

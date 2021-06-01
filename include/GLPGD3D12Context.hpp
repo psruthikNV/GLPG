@@ -22,6 +22,7 @@ namespace GLPG {
             bool InitializeContext();
             bool SwapBuffers();
             bool InitializeSwapchain();
+            bool InitializeCommandQueueResources(ID3D12PipelineState *pipelineState = nullptr);
 
             bool inited = true;
             uint32_t defaultWidth = 1366U;
@@ -50,7 +51,6 @@ namespace GLPG {
             uint32_t outputIdxToUse = 0U;
             bool EnumerateAdapters();
             bool EnumerateOutputs();
-            bool InitializeCommandQueueResources();
             bool running = true; // The destructor sets this to false
 #ifdef GLPG_IS_DEBUG
             bool debugInited = true;

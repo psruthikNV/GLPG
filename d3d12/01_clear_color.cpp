@@ -73,6 +73,10 @@ int main() {
         return -1;
     }
 
+    if (!gc.InitializeCommandQueueResources()) {
+        return -1;
+    }
+
     if (!eventLoop.InitializeEventLoop()) {
         std::cerr << "Failed to initialize event loop\n";
         return -1;

@@ -52,15 +52,18 @@ void GLPGD3D12Context::InfoQueuePoller() {
 }
 #endif
 
-bool GLPGD3D12Context::InitializeCommandQueueResources() {
+bool GLPGD3D12Context::InitializeCommandQueueResources(ID3D12PipelineState *pipelineState) {
     if (pD3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
                                              IID_PPV_ARGS(&pCmdAllocator)) != S_OK) {
         std::cerr << "Failed to create command allocator\n";
         return false;
     }
 
+    if (!pipelineState) {
+        std::cerr << "FUCK\n";
+    }
     if (pD3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                        pCmdAllocator.Get(), nullptr, IID_PPV_ARGS(&pCmdList)) != S_OK) {
+                                        pCmdAllocator.Get(), pipelineState, IID_PPV_ARGS(&pCmdList)) != S_OK) {
         std::cerr << "Failed to create command list\n";
         return false;
     }
@@ -123,7 +126,7 @@ bool GLPGD3D12Context::EnumerateAdapters() {
         adapters.push_back(pAdapter);
         ++numAdapters;
     }
-    std::cout << "Number of adapters: " << numAdapters << "\n";
+    std::cout << "Number of adapters: " << numAdapters << "\n\n";
     if (numAdapters == 0U) {
         return false;
     }
@@ -135,6 +138,7 @@ bool GLPGD3D12Context::EnumerateAdapters() {
         std::cout << "Details of Adapter " << idx + 1 << "\n";
         std::wcout << "Description : " << pdesc.Description << "\n";
         std::cout << "Vidmem : " << pdesc.DedicatedVideoMemory / 1000000000 << "GB\n";
+        std::cout << "Vidmem : " << pdesc.DedicatedVideoMemory / 1000000 << "MB\n";
         std::cout << "Dedicated Sysmem : "
             << pdesc.DedicatedSystemMemory / 1000000000 << "GB\n";
         std::cout << "Shared Sysmem : " << pdesc.SharedSystemMemory / 1000000000
@@ -219,6 +223,7 @@ GLPGD3D12Context::GLPGD3D12Context() {
         debugInited = false;
         // We'll still go ahead with the init
     } else {
+        std::cerr << "Starting Info poller\n";
         InfoQueuePollThread = std::thread(&GLPGD3D12Context::InfoQueuePoller, this);
     }
 #endif
@@ -235,12 +240,13 @@ GLPGD3D12Context::GLPGD3D12Context() {
         inited = false;
         return;
     }
-
+/*
     if (!InitializeCommandQueueResources()) {
         std::cerr << "Failed to initialize Command backings\n";
         inited = false;
         return;
     }
+*/
 
 }
 

@@ -203,6 +203,23 @@ int main() {
     inputLayoutDesc.pInputElementDescs = &iaDesc;
     inputLayoutDesc.NumElements = 1U;
 
+    D3D12_RENDER_TARGET_BLEND_DESC  renderTargetBlendDesc = {};
+    renderTargetBlendDesc.BlendEnable = false;
+    renderTargetBlendDesc.LogicOpEnable = false;
+    renderTargetBlendDesc.SrcBlend = D3D12_BLEND_ONE;
+    renderTargetBlendDesc.DestBlend = D3D12_BLEND_ZERO;
+    renderTargetBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+    renderTargetBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+    renderTargetBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+    renderTargetBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+    renderTargetBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+    renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+    D3D12_BLEND_DESC blendDesc = {};
+    blendDesc.AlphaToCoverageEnable = false;
+    blendDesc.IndependentBlendEnable = false;
+    blendDesc.RenderTarget[0] = renderTargetBlendDesc;
+
     ComPtr<ID3D12PipelineState> graphicsPipelineState;
     D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
     psoDesc.pRootSignature = rootSignature.Get();
@@ -215,6 +232,8 @@ int main() {
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc.Count = 1;
+    psoDesc.BlendState = blendDesc;
+    psoDesc.SampleMask = 1;
 
     ret = gc.pD3d12Device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&graphicsPipelineState));
     if (ret != S_OK) {
@@ -323,7 +342,7 @@ int main() {
 
     D3D12_VIEWPORT viewport = {};
     viewport.Width = static_cast<float>(gc.defaultWidth);
-    viewport.Height = static_cast<float>(gc.defaultHeight); 
+    viewport.Height = static_cast<float>(gc.defaultHeight);
 
     D3D12_RECT scissorRect = {};
     scissorRect.right = gc.defaultWidth;
@@ -369,8 +388,7 @@ int main() {
 
         gc.pCmdList->OMSetRenderTargets(1, &currentRtvHandle, false, nullptr);
 
-        const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-        gc.pCmdList->ClearRenderTargetView(currentRtvHandle, clearColor, 0, nullptr);
+        gc.pCmdList->ClearRenderTargetView(currentRtvHandle, colors, 0, nullptr);
         gc.pCmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
         gc.pCmdList->IASetVertexBuffers(0, 1, &vertexBufferView);
         gc.pCmdList->DrawInstanced(3, 1, 0, 0);

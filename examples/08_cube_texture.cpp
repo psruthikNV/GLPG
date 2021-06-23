@@ -2,6 +2,7 @@
 #include <Windows.h>
 #endif
 
+#include <chrono>
 #include <GL/gl.h>
 #include <GL/glext.h>
 
@@ -257,7 +258,8 @@ int main(int argc, char **argv)
     modelMatrix = translate(modelMatrix, translateVector);
     viewMatrix = lookAtRH(eyePosition, viewVector, upVector);
     glClearColor(0.0, 1.0, 1.0, 1.0);
-    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape){
+    while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+        std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
         if (event == GLPG::GLPGEvent::MouseWheel_Up) {
             eyePosition[2] += 1.1F;
         } else if (event == GLPG::GLPGEvent::MouseWheel_Down) {
@@ -276,6 +278,13 @@ int main(int argc, char **argv)
             glUniformMatrix4fv(projectionMatrixLocation, 1, GL_TRUE, projectionMatrix.data());
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto ts = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
+        std::cout << "Draw time: " << ts.count() * 1000 << "\n";
+        auto f1 = std::chrono::high_resolution_clock::now();
 	    context.SwapBuffers();
+        auto f2 = std::chrono::high_resolution_clock::now();
+        auto fs = std::chrono::duration_cast<std::chrono::duration<double>>(f2 - f1);
+        std::cout << "Flip time: " << fs.count() * 1000 << "\n";
     }
 }

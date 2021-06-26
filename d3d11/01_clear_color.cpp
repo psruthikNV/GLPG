@@ -5,11 +5,9 @@
 
 #include "../include/GLPGWindow.hpp"
 #include "../include/GLPGEvent.hpp"
+#include "../include/GLPGD3D11Context.hpp"
 
-#include <d3d11.h>
-#include <dxgi1_2.h>
 #undef CreateWindow // We require this undef since GLPG's CreateWindow collides with Win32's CreateWindow macro
-
 
 template <typename T>
 class counter {
@@ -53,10 +51,21 @@ int main() {
         return -1;
     }
 
-    if (window->CreateWindow(640, 480)) {
+    GLPG::GLPGD3D11Context gc;
+    if (!gc.inited) {
+        std::cerr << "Failed to initialize D3D11\n";
+        return -1;
+    }
+
+    if (window->CreateWindow(gc.defaultWidth, gc.defaultHeight)) {
         std::cout << "Width x Height: " << window->GetWindowWidth() << "x" << window->GetWindowHeight() << "\n";
     } else {
         std::cout << "Failed to create native window\n";
+        return -1;
+    }
+
+    if (!gc.InitializeSwapchain()) {
+        std::cerr << "Failed to initialize swapchain\n";
         return -1;
     }
 
@@ -65,124 +74,24 @@ int main() {
         return -1;
     }
 
-    HWND *hWindow = reinterpret_cast<HWND *>(window->GetWindowHandle());
-
-    IDXGIFactory* pdxgiFactory = nullptr;
-    ret = CreateDXGIFactory(__uuidof(IDXGIFactory),
-                            reinterpret_cast<void**>(&pdxgiFactory));
-
-    if (ret) {
-        std::cout << "Failed to create DXGIFactory instance\n";
-        return -1;
-    }
-
-    uint32_t numAdapters = 0;
-    IDXGIAdapter* pAdapter;
-    std::vector<IDXGIAdapter*> adapters;
-
-    while (pdxgiFactory->EnumAdapters(numAdapters, &pAdapter) !=
-           DXGI_ERROR_NOT_FOUND) {
-        adapters.push_back(pAdapter);
-        ++numAdapters;
-    }
-
-    DXGI_ADAPTER_DESC pdesc;
-    uint32_t adapterIdxInUse = 0U;
-    uint32_t currentMaxVidmem = 0U;
-    for (uint32_t idx = 0U; idx < numAdapters; idx++) {
-        ret = adapters[idx]->GetDesc(&pdesc);
-        std::cout << "Details of Adapter " << idx + 1 << "\n\n";
-        std::wcout << "Description : " << pdesc.Description << "\n";
-        std::cout << "Vidmem : " << pdesc.DedicatedVideoMemory / 1000000000 << "GB\n";
-        std::cout << "Dedicated Sysmem : "
-            << pdesc.DedicatedSystemMemory / 1000000000 << "GB\n";
-        std::cout << "Shared Sysmem : " << pdesc.SharedSystemMemory / 1000000000
-            << "GB\n";
-        if (pdesc.DedicatedVideoMemory > 0 &&
-            pdesc.DedicatedVideoMemory > currentMaxVidmem) {
-            adapterIdxInUse = idx;
-            currentMaxVidmem = pdesc.DedicatedSystemMemory;
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> pswapchainBuffers = {};
+    Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pRenderTargetView = {};
+    for (uint32_t idx = 0; idx < 1; idx++) {
+        ret = gc.pSwapchain->GetBuffer(idx, __uuidof(ID3D11Texture2D), (void**)&pswapchainBuffers);
+         if (ret != S_OK) {
+            std::cerr << "Failed to get buffer. Ret: " << std::hex << ret << std::dec << "\n";
+            return -1;
+        } else {
+            if (ret = gc.pD3d11Device->CreateRenderTargetView(pswapchainBuffers.Get(), nullptr, pRenderTargetView.GetAddressOf());
+                ret != S_OK) {
+                std::cout << "Failed to get back buffer\n";
+                std::cout << "Err : " << ret << "\n";
+                return -1;
+            }
         }
     }
 
-    ID3D11Device* pD3d11device;
-    ID3D11DeviceContext* pD3d11context;
-
-    ret = D3D11CreateDevice(adapters[adapterIdxInUse], D3D_DRIVER_TYPE_UNKNOWN,
-                            NULL, D3D11_CREATE_DEVICE_DEBUG, NULL, NULL,
-                            D3D11_SDK_VERSION, &pD3d11device, NULL, &pD3d11context);
-
-    if (ret != S_OK) {
-        std::cout << "Failed to Create D3d11 device\n";
-        std::cout << "Err:" << ret << "\n";
-        return -1;
-    }
-
-    ID3D11InfoQueue* debugInfoQueue;
-    ret = pD3d11device->QueryInterface(__uuidof(ID3D11InfoQueue), (void **)&debugInfoQueue);
-    if (ret != S_OK) {
-        std::cerr << "Failed to query Info Queue\n";
-        return -1;
-    } else {
-        std::cerr << "Queried Info queue\n";
-    }
-
-    ret = debugInfoQueue->PushEmptyStorageFilter();
-    if (ret != S_OK) {
-        std::cerr << "Failed to push empty filter onto info queue\n";
-        return -1;
-    } else {
-        std::cerr << "Pushed filter\n";
-    }
-
-    DXGI_SAMPLE_DESC sampleDesc = { 0 };
-    sampleDesc.Count = 1;
-    sampleDesc.Quality = 0;
-
-    DXGI_SWAP_CHAIN_DESC1 swapchainDesc = { 0 };
-    swapchainDesc.BufferCount = 1;
-    swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY;
-    swapchainDesc.SampleDesc = sampleDesc;
-    swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-    swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    swapchainDesc.Stereo = FALSE;
-    swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-    //swapchainDesc.Scaling = DXGI_SCALING_NONE;
-
-    IDXGIFactory2* pdxgiFactory2;
-    adapters[adapterIdxInUse]->GetParent(__uuidof(IDXGIFactory2), (void**)& pdxgiFactory2);
-
-    if (!pdxgiFactory2) {
-        std::cout << "Failed to get pdxgifactory 2\n";
-        return -1;
-    }
-
-    IDXGISwapChain1* pSwapchain = nullptr;
-
-    ret = pdxgiFactory2->CreateSwapChainForHwnd(pD3d11device, *hWindow, &swapchainDesc, NULL, NULL, &pSwapchain);
-    if (ret != S_OK) {
-        std::cout << "Swapchain creation failed due to : " << ret << "\n";
-        return -1;
-    }
-    
-    ID3D11Texture2D* pbackBuffer;
-    ret = pSwapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pbackBuffer);
-    if (ret != S_OK) {
-        std::cout << "Failed to get back buffer\n";
-        std::cout << "Err : " << ret << "\n";
-        return -1;
-    }
-
-    ID3D11RenderTargetView* pRenderTargetView = nullptr;
-    ret = pD3d11device->CreateRenderTargetView(pbackBuffer, nullptr, &pRenderTargetView);
-    if (ret != S_OK) {
-        std::cout << "Failed to create render target view\n";
-        std::cout << "Err : " << ret << "\n";
-        return -1;
-    }
-
-    pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
+    gc.pD3d11Context->OMSetRenderTargets(1U, pRenderTargetView.GetAddressOf(), nullptr);
 
     float colors[4];
     colors[3] = 0.0F;
@@ -197,26 +106,8 @@ int main() {
         colors[0] = red.operator++();
         colors[1] = green.operator++();
         colors[2] = blue.operator++();
-        pD3d11context->OMSetRenderTargets(1U, &pRenderTargetView, nullptr);
-        pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
-        pSwapchain->Present(1, 0);
+        gc.pD3d11Context->OMSetRenderTargets(1U, pRenderTargetView.GetAddressOf(), nullptr);
+        gc.pD3d11Context->ClearRenderTargetView(pRenderTargetView.Get(), colors);
+        gc.pSwapchain->Present(0, 0);
     }
-
-    // Below code is taken from https://stackoverflow.com/a/57362700
-    // TODO: Add a debug thread that polls GetNumStorageMessages
-    uint64_t messageCount = debugInfoQueue->GetNumStoredMessages();
-    for (uint64_t idx = 0U; idx < messageCount; idx++) {
-        SIZE_T message_size = 0;
-        debugInfoQueue->GetMessage(idx, nullptr, &message_size); //get the size of the message
-
-        D3D11_MESSAGE* message = (D3D11_MESSAGE*) malloc(message_size); //allocate enough space
-        ret = debugInfoQueue->GetMessage(idx, message, &message_size);
-        if (ret != S_OK) {
-            std::cerr << "Failed to get any message\n";
-        } else {
-            std::cerr << "D3D11 Debug: " << message->DescriptionByteLength << " " << message->pDescription << "\n";
-        }
-        free(message);
-    }
-    debugInfoQueue->ClearStoredMessages();
 }

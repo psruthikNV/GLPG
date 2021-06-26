@@ -59,9 +59,6 @@ bool GLPGD3D12Context::InitializeCommandQueueResources(ID3D12PipelineState *pipe
         return false;
     }
 
-    if (!pipelineState) {
-        std::cerr << "FUCK\n";
-    }
     if (pD3d12Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                                         pCmdAllocator.Get(), pipelineState, IID_PPV_ARGS(&pCmdList)) != S_OK) {
         std::cerr << "Failed to create command list\n";
@@ -88,12 +85,12 @@ bool GLPGD3D12Context::InitializeSwapchain() {
     sampleDesc.Quality = 0;
 
     DXGI_SWAP_CHAIN_DESC1 swapchainDesc = { 0 };
-    // BufferCount must be > 1 for DXGI_SWAP_EFFECT_FLIP_DISCARD
+    // BufferCount must be > 1 for DXGI_SWAP_EFFECT_FLIP_DISCARD.
     swapchainDesc.BufferCount = 2;
     swapchainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY;
     swapchainDesc.SampleDesc = sampleDesc;
-    // D3D12 does not support blitting swap effects and only flip modes must be used
+    // D3D12 does not support blitting swap effects and only flip modes must be used.
     swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     swapchainDesc.Stereo = FALSE;
@@ -133,6 +130,9 @@ bool GLPGD3D12Context::EnumerateAdapters() {
 
     DXGI_ADAPTER_DESC pdesc = {};
 
+    // By default we select the GPU with the most vidmem
+    // as the adapter to use.
+    // TODO: Check for the number of outputs connected to the adapter here.
     for (uint32_t idx = 0U; idx < numAdapters; idx++) {
         auto ret = adapters[idx]->GetDesc(&pdesc);
         std::cout << "Details of Adapter " << idx + 1 << "\n";
@@ -165,6 +165,7 @@ bool GLPGD3D12Context::EnumerateOutputs() {
         return false;
     }
 
+    // By default we select the output with the most resolution.
     uint64_t maxRes = 0U;
     for (uint32_t idx = 0U; idx < numOutputs; idx++) {
         DXGI_OUTPUT_DESC outputDesc = {};
@@ -186,9 +187,9 @@ bool GLPGD3D12Context::EnumerateOutputs() {
 GLPGD3D12Context::GLPGD3D12Context() {
 #ifdef GLPG_IS_DEBUG
     if (D3D12GetDebugInterface(IID_PPV_ARGS(&pdebugInterface)) != S_OK) {
+        // Even though enabling the debug layer failed, we can go ahead
+        // with the init. Just log the error.
         std::cerr << "Failed to get d3d12 debug interface\n";
-        inited = false;
-        return;
     } else {
         pdebugInterface->EnableDebugLayer();
     }
@@ -228,26 +229,18 @@ GLPGD3D12Context::GLPGD3D12Context() {
     }
 #endif
 
-    D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {
-        D3D12_COMMAND_LIST_TYPE_DIRECT,
-        D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
-        D3D12_COMMAND_QUEUE_FLAG_NONE,
-        0U
-    };
+    D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
+    commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+    commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+    commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    commandQueueDesc.NodeMask = 0U;
+
     if (pD3d12Device->CreateCommandQueue(&commandQueueDesc, 
                                          IID_PPV_ARGS(&pCommandQueue)) != S_OK) {
         std::cerr << "Failed to create command queue\n";
         inited = false;
         return;
     }
-/*
-    if (!InitializeCommandQueueResources()) {
-        std::cerr << "Failed to initialize Command backings\n";
-        inited = false;
-        return;
-    }
-*/
-
 }
 
 GLPGD3D12Context::~GLPGD3D12Context() {

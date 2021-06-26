@@ -8,7 +8,7 @@ elif host_machine.system() == 'windows'
   src_files += files('GLPGWindow_Win32.cpp', 'GLPGWindowImpl_Win32.cpp',
                      'GLPGContextImpl_GL_WGL.cpp', 'GLPGContextImpl_Platform_WGL.cpp',
                      'GLPGEvent_Win32.cpp', 'GLPGEventImpl_Win32.cpp',
-                     'GLPGD3D12Context.cpp')
+                     'GLPGD3D12Context.cpp', 'GLPGD3D11Context.cpp')
 endif
 
 libglpg = static_library('GLPG', src_files,

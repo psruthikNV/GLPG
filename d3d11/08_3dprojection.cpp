@@ -406,7 +406,6 @@ int main() {
         pD3d11context->ClearRenderTargetView(pRenderTargetView, colors);
         pD3d11context->Draw(36, 0);
         pSwapchain->Present(0, 0);
-        Sleep(16.6);
     }
 
     // Below code is taken from https://stackoverflow.com/a/57362700

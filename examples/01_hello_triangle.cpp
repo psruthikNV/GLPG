@@ -100,6 +100,10 @@ int main()
     glFlush();
     context.SwapBuffers();
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+        if (event == GLPG::GLPGEvent::Key_Alt_Return) {
+            glViewport(0, 0, 2560, 1440);
+            std::cerr << "ALT enter\n";
+        }
         glClear(GL_COLOR_BUFFER_BIT);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         context.SwapBuffers();

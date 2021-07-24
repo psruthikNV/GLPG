@@ -1,8 +1,34 @@
 #include "GLPGEvent.hpp"
 #include "GLPGWindow.hpp"
 #include "internal/GLPGEventImpl_Win32.hpp"
+#include "internal/GLPGWindowImpl_Win32.hpp"
 
 namespace GLPG {
+
+    static void FullScreenTransition()
+    {
+        DEVMODE desktopMode = {};
+        auto ret = EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &desktopMode);
+        if (!ret) {
+            std::cerr << "Failed to get display mode\n";
+            return;
+        }
+        std::cout << "Width: " << desktopMode.dmPelsWidth << "\n";
+
+        GLPGWindowImpl_Win32* windowImpl = dynamic_cast<GLPGWindowImpl_Win32*>(GLPG::GLPGWindow::GetImplInstance());
+        if (!windowImpl) {
+            std::cerr << "GLPG Error: Internal Failure" << std::endl;
+            return;
+        }
+        SetWindowLongPtr(windowImpl->GetWin32WindowHandle(), GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST);
+        SetWindowLongPtr(windowImpl->GetWin32WindowHandle(), GWL_STYLE, WS_POPUP | WS_VISIBLE);
+        SetWindowPos(windowImpl->GetWin32WindowHandle(), HWND_TOPMOST, 0, 0, desktopMode.dmPelsWidth, desktopMode.dmPelsHeight, SWP_SHOWWINDOW);
+        auto ret_2 = ChangeDisplaySettings(&desktopMode, CDS_FULLSCREEN);
+        if (ret_2 != DISP_CHANGE_SUCCESSFUL) {
+            std::cerr << "Failed to set FS\n";
+        }
+        ShowWindow(windowImpl->GetWin32WindowHandle(), SW_MAXIMIZE);
+    }
 
     GLPGEventImpl_Win32::GLPGEventImpl_Win32() {
     }
@@ -41,8 +67,23 @@ namespace GLPG {
                         case VK_ESCAPE:
                             rv = GLPGEvent::Key_Escape;
                             break;
+                        case VK_RETURN:
+                            rv = GLPGEvent::Key_Return;
+                            break;
                         case 0x57:
                             rv = GLPGEvent::Key_W;
+                            break;
+                        case VK_LMENU:
+                            rv = GLPGEvent::Key_Alt;
+                            break;
+                    }
+                    break;
+                case WM_SYSKEYDOWN:
+                    switch (msg.wParam)
+                    {
+                        case VK_RETURN:
+                            rv = GLPGEvent::Key_Alt_Return;
+                            FullScreenTransition();
                             break;
                     }
                     break;
@@ -52,6 +93,11 @@ namespace GLPG {
                     } else {
                         rv = GLPGEvent::MouseWheel_Down;
                     }
+                    break;
+                case WM_LBUTTONDOWN:
+                    uint16_t xPos = msg.lParam & 0xFFFF;
+                    uint16_t yPos = (msg.lParam >> 16U) & 0xFFFF;
+                    std::cout << "xPos: " << xPos << " yPos: " << yPos << "\n";
                     break;
             }
         }

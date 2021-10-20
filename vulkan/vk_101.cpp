@@ -115,7 +115,7 @@ int main()
 
     VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
     swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.imageFormat = VK_FORMAT_R8G8B8A8_UINT;
+    swapchainCreateInfo.imageFormat = VK_FORMAT_B8G8R8A8_SRGB;
     swapchainCreateInfo.imageColorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     swapchainCreateInfo.imageArrayLayers = 1U;
     swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -225,7 +225,7 @@ int main()
     vkGetDeviceQueue(device, 0, 0, &queue);
 
     VkCommandPool cmdPool;
-    VkCommandPoolCreateInfo cmdPoolCreateInfo;
+    VkCommandPoolCreateInfo cmdPoolCreateInfo = {};
     cmdPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     cmdPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     cmdPoolCreateInfo.queueFamilyIndex = 0U;
@@ -271,6 +271,25 @@ int main()
         VkPrintVkSurfaceCapabilitiesKHR(surfaceCaps);
         swapchainCreateInfo.imageExtent = surfaceCaps.currentExtent;
         swapchainCreateInfo.minImageCount = surfaceCaps.minImageCount;
+    }
+
+    uint32_t numSupportedSwapchainColorFormats = 0U;
+    if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevicesArray[defaultDeviceIdx], surface, &numSupportedSwapchainColorFormats, nullptr) != VK_SUCCESS) {
+        std::cerr << "Failed to get the number of color formats supported by the swapchain\n";
+        return -1;
+    } else {
+        VkSurfaceFormatKHR supportedSurfaceColorFormats[3];
+        std::cerr << "Number of supported color formats: " << numSupportedSwapchainColorFormats << "\n";
+         if (vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevicesArray[defaultDeviceIdx], surface, &numSupportedSwapchainColorFormats,
+                                                  supportedSurfaceColorFormats) != VK_SUCCESS) {
+             std::cerr << "Failed to get the color formats supported by the swapchain\n";
+             return -1;
+         } else {
+             std::cerr << "Supported swapchain formats : \n";
+             for (uint32_t idx = 0U; idx < numSupportedSwapchainColorFormats; idx++) {
+                 VkPrintVkSurfaceFormatKHR(supportedSurfaceColorFormats[idx]);
+             }
+         }
     }
 
     swapchainCreateInfo.surface = surface;

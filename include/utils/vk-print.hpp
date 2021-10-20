@@ -211,3 +211,10 @@ static void VkPrintVkLayerProperties(const VkLayerProperties &type)
     std::cout << "VkLayerProperties.implementationVersion: " << type.implementationVersion << "\n";
     std::cout << "VkLayerProperties.description: " << type.description << "\n";
 }
+
+static void VkPrintVkSurfaceFormatKHR(const VkSurfaceFormatKHR &type)
+{
+    std::cout << "VkSurfaceFormatKHR.format: " << type.format << "\n";
+    std::cout << "VkSurfaceFormatKHR.colorSpace: " << type.colorSpace << "\n";
+}
+

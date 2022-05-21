@@ -37,7 +37,7 @@ add_subdirectory(src)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
     add_subdirectory(d3d2)
-#    add_subdirectory(d3d7)
+    add_subdirectory(d3d7)
 #    add_subdirectory(d3d9)
 #    add_subdirectory(d3d11)
 #    add_subdirectory(d3d12)

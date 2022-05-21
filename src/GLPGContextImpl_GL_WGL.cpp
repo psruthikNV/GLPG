@@ -27,7 +27,7 @@ namespace GLPG {
         bool ret = platformImpl->InitializeGLPlatformContext();
 #ifdef GLPG_IS_DEBUG
         if (ret) {
-            glDebugMessageCallback(DebugMessageCallback, nullptr);
+            glDebugMessageCallback((GLDEBUGPROC)DebugMessageCallback, nullptr);
         }
 #endif
         return ret;

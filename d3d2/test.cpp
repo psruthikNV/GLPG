@@ -320,6 +320,7 @@ int main() {
 	D3DMATERIAL bMat = {};
 	bMat.dwSize = sizeof(D3DMATERIAL);
 	bMat.diffuse.r = bMat.diffuse.g = bMat.diffuse.b = bMat.ambient.r = bMat.ambient.g = bMat.ambient.b = 1.0;
+	bMat.emissive.r = 1.0;
 	bMat.dwRampSize = 1;
 	ret = lpBmat->SetMaterial(&bMat);
 	if (ret != S_OK) {
@@ -485,20 +486,243 @@ int main() {
 	} else {
 		std::cerr << "Execute data set\n";
 	}
+
+	D3DEXECUTEBUFFERDESC renderStateExecuteBufferDesc = {};
+	D3DEXECUTEDATA renderStateExecuteData = {};
+	size_t renderStateExecuteBufferSize = 0U;
+	renderStateExecuteBufferSize += sizeof(D3DINSTRUCTION) * 3;
+	renderStateExecuteBufferSize += sizeof(D3DSTATE) * 17;
 	
+	renderStateExecuteBufferDesc.dwSize = sizeof(D3DEXECUTEBUFFERDESC);
+	renderStateExecuteBufferDesc.dwFlags = D3DDEB_BUFSIZE;
+	renderStateExecuteBufferDesc.dwBufferSize = renderStateExecuteBufferSize;
 	
-	
-	
-	
-	
-		
-	/* Texture stuff. Will get to this later
-	ret = lpD3DDevice->EnumTextureFormats((LPD3DENUMTEXTUREFORMATSCALLBACK)TextureFormatEnumCallback, nullptr);
+	LPDIRECT3DEXECUTEBUFFER lpRenderStateExecuteBuffer = {};
+	ret = lpD3DDevice->CreateExecuteBuffer(&renderStateExecuteBufferDesc, &lpRenderStateExecuteBuffer, nullptr);
 	if (ret != S_OK) {
-		std::cerr << "Failed to enumerate texture formats\n";
+		std::cerr << "Failed to create rs execute buffer\n";
 		return -1;
+	} else {
+		std::cerr << "Created rs execute buffer\n";
+	}
+	
+	ret = lpRenderStateExecuteBuffer->Lock(&renderStateExecuteBufferDesc);
+	if (ret != S_OK) {
+		std::cerr << "Failed to lock rs execute buffer\n";
+		return -1;
+	} else {
+		std::cerr << "Locked rs execute buffer\n";
+	}
+	
+	LPVOID lpRsInsStart, lpRsBuffer;
+	lpRsInsStart = renderStateExecuteBufferDesc.lpData;
+	lpRsBuffer = lpRsInsStart;
+	
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bOpcode = D3DOP_STATERENDER;
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bSize = sizeof(D3DSTATE);
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->wCount = 14;
+	lpRsBuffer = (void *)(((LPD3DINSTRUCTION) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_SHADEMODE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DSHADE_FLAT;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_TEXTUREPERSPECTIVE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = TRUE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_ZENABLE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = FALSE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_ZWRITEENABLE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = TRUE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_ZFUNC;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DCMP_LESSEQUAL;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_TEXTUREMAG;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DFILTER_NEAREST;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_TEXTUREMIN;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DFILTER_NEAREST;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_TEXTUREMAPBLEND;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DTBLEND_MODULATE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_FILLMODE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DFILL_SOLID;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_DITHERENABLE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = FALSE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_SPECULARENABLE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = TRUE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_ANTIALIAS;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = FALSE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_FOGENABLE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = FALSE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = D3DRENDERSTATE_FOGCOLOR;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = 0;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bOpcode = D3DOP_STATELIGHT;
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bSize = sizeof(D3DSTATE);
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->wCount = 3;
+	lpRsBuffer = (void *)(((LPD3DINSTRUCTION) lpRsBuffer) + 1);
+	
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = (D3DRENDERSTATETYPE)D3DLIGHTSTATE_FOGMODE;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = D3DFOG_NONE;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = (D3DRENDERSTATETYPE)D3DLIGHTSTATE_FOGSTART;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = 1;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->drstRenderStateType = (D3DRENDERSTATETYPE)D3DLIGHTSTATE_FOGEND;
+	reinterpret_cast<LPD3DSTATE>(lpRsBuffer)->dwArg[0] = 100;
+	lpRsBuffer = (void *)(((LPD3DSTATE) lpRsBuffer) + 1);
+	
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bOpcode = D3DOP_EXIT;
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->bSize = 0;
+	reinterpret_cast<LPD3DINSTRUCTION>(lpRsBuffer)->wCount = 0;
+	
+	ret = lpRenderStateExecuteBuffer->Unlock();
+	if (ret != S_OK) {
+		std::cerr << "Failed to unlcok rs execute buffer\n";
+		return -1;
+	} else {
+		std::cerr << "Unlocked execute buffer\n";
+	}
+	 
+	renderStateExecuteData.dwSize = sizeof(D3DEXECUTEDATA);
+	renderStateExecuteData.dwInstructionOffset = (ULONG) 0;
+	renderStateExecuteData.dwInstructionLength = (ULONG) ((char*)lpRsBuffer - (char*)lpRsInsStart);
+	
+	ret = lpRenderStateExecuteBuffer->SetExecuteData(&renderStateExecuteData);
+	if (ret != S_OK) {
+		std::cerr << "Failed to set rs execute buffer data\n";
+		return -1;
+	} else {
+		std::cerr << "Set rs execute buffer data\n";
+	}
+	
+	ret = lpD3DDevice->BeginScene();
+	if (ret != S_OK) {
+		std::cerr << "Failed to begin scene\n";
+		return -1;
+	} else {
+		std::cerr << "Inside begin scene\n";
+	}
+	
+	ret = lpD3DDevice->Execute(lpRenderStateExecuteBuffer, lpViewport, D3DEXECUTE_UNCLIPPED);
+	if (ret != S_OK) {
+		std::cerr << "Failed to execute rs command buffer\n";
+		return -1;
+	} else {
+		std::cerr << "Executed rs command buffer\n";
+	}
+	
+	ret = lpD3DDevice->EndScene();
+	if (ret != S_OK) {
+		std::cerr << "Failed to end scene\n";
+		return -1;
+	} else {
+		std::cerr << "Outside end scene\n";
+	}
+	
+	lpRenderStateExecuteBuffer->Release();
+	/*
+	ret = lpD3DDevice->BeginScene();
+	if (ret != S_OK) {
+		std::cerr << "Failed to begin scene\n";
+		return -1;
+	} else {
+		std::cerr << "Inside begin scene\n";
+	}
+	
+	ret = lpD3DDevice->Execute(lpExecBuffer, lpViewport, D3DEXECUTE_UNCLIPPED);
+	if (ret != S_OK) {
+		std::cerr << "Failed to execute app command buffer\n";
+		return -1;
+	} else {
+		std::cerr << "Executed app command buffer\n";
+	}
+	
+	ret = lpD3DDevice->EndScene();
+	if (ret != S_OK) {
+		std::cerr << "Failed to end scene\n";
+		return -1;
+	} else {
+		std::cerr << "Outside end scene\n";
 	}*/
+	
+	/*
+	ret = surface->Flip(backSurface, 0);
+	if (ret != S_OK) {
+		std::cerr << "Failed to flip\n";
+		return -1;
+	} else {
+		std::cerr << "flipped\n";
+	}*/
+	
+	
+	RECT back = {0, 0, surfaceDesc.dwWidth, surfaceDesc.dwHeight};
+	RECT front = back;
+	
+	ret = surface->Blt(&front, backSurface, &back, DDBLT_WAIT, NULL);
+	if (ret != S_OK) {
+		std::cerr << "Failed to blit\n";
+		return -1;
+	} else {
+		std::cerr << "blitted\n";
+	}
 
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+		/*
+		ret = lpD3DDevice->BeginScene();
+		if (ret != S_OK) {
+			std::cerr << "Failed to begin scene\n";
+			return -1;
+		} else {
+			std::cerr << "Inside begin scene\n";
+		}
+		
+		ret = lpD3DDevice->Execute(lpExecBuffer, lpViewport, D3DEXECUTE_UNCLIPPED);
+		if (ret != S_OK) {
+			std::cerr << "Failed to execute app command buffer\n";
+			return -1;
+		} else {
+			std::cerr << "Executed app command buffer\n";
+		}
+		
+		ret = lpD3DDevice->EndScene();
+		if (ret != S_OK) {
+			std::cerr << "Failed to end scene\n";
+			return -1;
+		} else {
+			std::cerr << "Outside end scene\n";
+		}*/
+		ret = surface->Blt(&front, backSurface, &back, DDBLT_WAIT, NULL);
+		if (ret != S_OK) {
+			std::cerr << "Failed to blit\n";
+			return -1;
+		} else {
+			std::cerr << "blitted\n";
+		}
     }
 }

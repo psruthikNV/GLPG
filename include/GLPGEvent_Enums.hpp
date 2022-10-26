@@ -25,6 +25,10 @@ namespace GLPG {
         MouseWheel_Up,
         MouseWheel_Down,
         Key_Alt_Return,
-        Key_Alt
+        Key_Alt,
+        Key_0,
+        Key_1,
+        Key_2,
+        Key_3,
     };
 }

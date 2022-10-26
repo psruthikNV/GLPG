@@ -56,6 +56,7 @@ extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
+extern PFNGLUNIFORM3FPROC glUniform3f;
 
 namespace GLPG {
     class GLPGContextImpl_GL : public GLPGContextImpl {

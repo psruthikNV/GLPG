@@ -73,8 +73,29 @@ namespace GLPG {
                         case 0x57:
                             rv = GLPGEvent::Key_W;
                             break;
+                        case 0x53:
+                            rv = GLPGEvent::Key_S;
+                            break;
+                        case 0x41:
+                            rv = GLPGEvent::Key_A;
+                            break;
+                        case 0x44:
+                            rv = GLPGEvent::Key_D;
+                            break;
                         case VK_LMENU:
                             rv = GLPGEvent::Key_Alt;
+                            break;
+                        case 0x30:
+                            rv = GLPGEvent::Key_0;
+                            break;
+                        case 0x31:
+                            rv = GLPGEvent::Key_1;
+                            break;
+                        case 0x32:
+                            rv = GLPGEvent::Key_2;
+                            break;
+                        case 0x33:
+                            rv = GLPGEvent::Key_3;
                             break;
                     }
                     break;

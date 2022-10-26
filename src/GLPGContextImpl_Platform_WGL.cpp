@@ -52,6 +52,7 @@ PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 PFNGLACTIVETEXTUREPROC glActiveTexture;
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
+PFNGLUNIFORM3FPROC glUniform3f;
 
 namespace GLPG {
     void *GLPGContextImpl_Platform_WGL::LoadGLFunction(const char *name) {
@@ -113,6 +114,7 @@ namespace GLPG {
         glActiveTexture = (PFNGLACTIVETEXTUREPROC)LoadGLFunction("glActiveTexture");
         glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)LoadGLFunction("glFramebufferTexture2D");
         glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)LoadGLFunction("glDebugMessageCallback");
+        glUniform3f = (PFNGLUNIFORM3FPROC)LoadGLFunction("glUniform3f");
     }
 
     bool GLPGContextImpl_Platform_WGL::LoadWGLFunctionPointers() {

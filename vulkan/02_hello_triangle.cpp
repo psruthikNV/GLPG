@@ -2,6 +2,7 @@
 #include <vector>
 
 #ifdef _WIN32
+#define NOMINMAX
 #define VK_USE_PLATFORM_WIN32_KHR
 #else
 #define VK_USE_PLATFORM_XCB_KHR
@@ -13,8 +14,15 @@
 #include "../include/utils/vk-print.hpp"
 #include "../include/utils/vk-utils.hpp"
 #include <random>
+#include <fstream>
 
 #undef CreateWindow
+
+const float vertexData[] = {
+    -0.5f, -0.5f, 0.0f,
+    0.5f, -0.5f, 0.0f,
+    0.0f, 0.5f, 0.0f
+};
 
 template <typename T>
 class counter {
@@ -50,6 +58,10 @@ int main()
     counter_f red(dist(gen));
     counter_f green(dist(gen));
     counter_f blue(dist(gen));
+    const char *compiledVSPath = "C:/repos/GLPG/vulkan/shaders/a.spv";
+    const char *vsCompiledBlob;
+    const char *compiledFSPath = "C:/repos/GLPG/vulkan/shaders/a_fs.spv";
+    const char *fsCompiledBlob;
     ///
     /// TODO: Query modes dynamically.
     ///
@@ -57,6 +69,38 @@ int main()
     constexpr uint32_t height = 1440U;
     GLPG::GLPGEventLoop eventLoop;
     GLPG::GLPGEvent event;
+
+    std::fstream fs;
+    std::streampos vsCompiledBlobSize;
+    std::streampos fsCompiledBlobSize;
+
+    fs.open(compiledVSPath, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!fs.is_open()) {
+        std::cerr << "Failed to open spv file\n";
+        return -1;
+    } else {
+        std::cerr << "Opened spv file\n";
+    }
+
+    vsCompiledBlobSize = fs.tellg();
+    vsCompiledBlob = new char[vsCompiledBlobSize];
+    fs.seekg(0, std::ios::beg);
+    fs.read((char *)(vsCompiledBlob), vsCompiledBlobSize);
+    fs.close();
+
+    fs.open(compiledFSPath, std::ios::in | std::ios::binary | std::ios::ate);
+    if (!fs.is_open()) {
+        std::cerr << "Failed to open spv file\n";
+        return -1;
+    } else {
+        std::cerr << "Opened spv file\n";
+    }
+
+    fsCompiledBlobSize = fs.tellg();
+    fsCompiledBlob = new char[fsCompiledBlobSize];
+    fs.seekg(0, std::ios::beg);
+    fs.read((char *)(fsCompiledBlob), fsCompiledBlobSize);
+    fs.close();
 
     GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
     if (!window) {
@@ -80,13 +124,13 @@ int main()
 #ifdef _WIN32
     requiredInstanceExtensions.emplace_back("VK_KHR_win32_surface");
 #endif // _WIN32
-#ifdef VKBUBBLE_DEBUG
+#ifdef GLPG_IS_DEBUG
     requiredInstanceExtensions.emplace_back("VK_EXT_debug_utils");
-#endif // VKBUBBLE_DEBUG
+#endif // GLPG_IS_DEBUG
     std::vector<const char*> requiredInstanceLayers = {};
-#ifdef VKBUBBLE_DEBUG
+#ifdef GLPG_IS_DEBUG
     requiredInstanceLayers.emplace_back("VK_LAYER_KHRONOS_validation");
-#endif // VKBUBBLE_DEBUG
+#endif // GLPG_IS_DEBUG
 
     ///
     /// Query the number of available instance layers.
@@ -309,6 +353,40 @@ int main()
     vkGetDeviceQueue(dev, 0, 0, &queue);
 
     ///
+    /// Query the available memory heaps and types.
+    ///
+    VkPhysicalDeviceMemoryProperties physcalDevMemoryProps = {};
+    vkGetPhysicalDeviceMemoryProperties(physicalDev, &physcalDevMemoryProps);
+    VkPrintVkPhysicalDeviceMemoryProperties(physcalDevMemoryProps);
+
+    ///
+    /// Create Shader modules
+    ///
+    VkShaderModuleCreateInfo vsShaderModuleCreateInfo = {};
+    vsShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    vsShaderModuleCreateInfo.codeSize = vsCompiledBlobSize;
+    vsShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(vsCompiledBlob);
+    VkShaderModule vsShaderModule = {};
+
+    res = vkCreateShaderModule(dev, &vsShaderModuleCreateInfo, nullptr, &vsShaderModule);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to create Vertex shader module\n";
+        return -1;
+    }
+
+    VkShaderModuleCreateInfo fsShaderModuleCreateInfo = {};
+    fsShaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    fsShaderModuleCreateInfo.codeSize = fsCompiledBlobSize;
+    fsShaderModuleCreateInfo.pCode = reinterpret_cast<const uint32_t *>(fsCompiledBlob);
+    VkShaderModule fsShaderModule = {};
+
+    res = vkCreateShaderModule(dev, &fsShaderModuleCreateInfo, nullptr, &fsShaderModule);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to create Fragment shader module\n";
+        return -1;
+    }
+
+    ///
     /// Create Win32 VkSurface
     ///
     VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
@@ -420,7 +498,7 @@ int main()
     }
 
     ///
-    /// Create Command Pool and Command Buffer.
+    /// Create Command Pool.
     ///
     VkCommandPool cmdPool = {};
     VkCommandPoolCreateInfo cmdPoolCreateInfo = {};
@@ -432,6 +510,9 @@ int main()
         return -1;
     }
 
+    ///
+    /// Allocate command buffers from command pool.
+    ///
     VkCommandBuffer cmdBuffer = {};
     VkCommandBufferAllocateInfo cmdBufferAllocInfo = {};
     cmdBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -444,17 +525,9 @@ int main()
         return -1;
     }
 
-    VkSemaphore imageAcquireSemaphore = {};
-    VkSemaphoreCreateInfo semaphoreCreateInfo = {};
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    res = vkCreateSemaphore(dev, &semaphoreCreateInfo, nullptr, &imageAcquireSemaphore);
-    if (res != VK_SUCCESS) {
-        std::cerr << "Failed to create semaphore object\n";
-        return -1;
-    } else {
-        std::cout << "Created VkSemaphore\n";
-    }
-
+    ///
+    /// Create a fence to be signaled by the device when swapchain images are available.
+    ///
     VkFence imageAcquireFence = {};
     VkFenceCreateInfo imageAcquireFenceCreateInfo = {};
     imageAcquireFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -467,6 +540,9 @@ int main()
         std::cout << "Created vk fence\n";
     }
 
+    ///
+    /// Create a fence to be signaled by the device when the submitted work finishes.
+    ///
     VkFence queueSubmitPostFence = {};
     VkFenceCreateInfo queueSubmitPostFenceCreateInfo = {};
     queueSubmitPostFenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -479,12 +555,341 @@ int main()
     } else {
         std::cout << "Created vk fence\n";
     }
+
+
+    ///
+    /// Renderpass creation
+    ///
+
+    ///
+    /// First, describe the sole swapchain attachment.
+    /// We have two attachment descriptions here since our
+    /// swapchain contains two color buffers.
+    ///
+    std::vector<VkAttachmentDescription> swapchainAttachmentDescs;
+    VkAttachmentDescription swapchainAttachmentDesc = {};
+    swapchainAttachmentDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
+    swapchainAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+    swapchainAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    swapchainAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    swapchainAttachmentDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    swapchainAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    swapchainAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    swapchainAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; 
+    swapchainAttachmentDescs.emplace_back(swapchainAttachmentDesc);
+    swapchainAttachmentDescs.emplace_back(swapchainAttachmentDesc);
+
+    ///
+    /// Next, describe the sole subpass inside the renderpass.
+    ///
+
+    VkAttachmentReference swapchainImageReference = {};
+    swapchainImageReference.attachment = 0U;
+    swapchainImageReference.layout = VK_IMAGE_LAYOUT_GENERAL;
+
+    VkSubpassDescription colorSubpassDesc = {};
+    colorSubpassDesc.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    colorSubpassDesc.colorAttachmentCount = 1U;
+    colorSubpassDesc.pColorAttachments = &swapchainImageReference;
+
+    ///
+    /// Finally, describe and create the render pass
+    ///
+    VkRenderPassCreateInfo clearRenderPassCreateInfo = {};
+    clearRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    clearRenderPassCreateInfo.attachmentCount = 1U;
+    clearRenderPassCreateInfo.pAttachments = &swapchainAttachmentDescs[0];
+    clearRenderPassCreateInfo.subpassCount = 1U;
+    clearRenderPassCreateInfo.pSubpasses = &colorSubpassDesc;
+
+    VkRenderPass clearRenderPass = {};
+    res = vkCreateRenderPass(dev, &clearRenderPassCreateInfo, nullptr, &clearRenderPass);
+    if (res != VK_SUCCESS) {
+        std::cout << "Failed to create renderpass\n";
+        return -1;
+    } else {
+        std::cout << "Created Renderpass\n";
+    }
+
+    ///
+    /// Framebuffer creation.
+    ///
+
+    ///
+    /// First, create VkImageView handles for the swapchain images.
+    ///
+    std::vector<VkImageView> swapchainImageViews(2U);
+    for (uint32_t idx = 0U; idx < 2U; idx++) {
+        VkImageViewCreateInfo swapchainImageViewInfo = {};
+        swapchainImageViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        swapchainImageViewInfo.image = swapchainImages[idx];
+        swapchainImageViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        swapchainImageViewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+        swapchainImageViewInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+        swapchainImageViewInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+        swapchainImageViewInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+        swapchainImageViewInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+        swapchainImageViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        swapchainImageViewInfo.subresourceRange.levelCount = 1;
+        swapchainImageViewInfo.subresourceRange.layerCount = 1;
+
+        res = vkCreateImageView(dev, &swapchainImageViewInfo, nullptr, &swapchainImageViews[idx]);
+        if (res != VK_SUCCESS) {
+            std::cout << "Failed to create image views for swapchain image idx: " << idx << "\n";
+            return -1;
+        }
+    }
+
+    ///
+    /// Next, create a framebuffer object encompassing the swapchain image views.
+    ///
+    std::vector<VkFramebuffer> fb;
+    for (uint32_t idx = 0U; idx < 2U; idx++) {
+        VkFramebufferCreateInfo fbCreateInfo = {};
+        fbCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        fbCreateInfo.renderPass = clearRenderPass;
+        fbCreateInfo.attachmentCount = 1U; // number of swapchain images.
+        fbCreateInfo.pAttachments = &swapchainImageViews[idx];
+        fbCreateInfo.width = surfaceCaps.currentExtent.width;
+        fbCreateInfo.height = surfaceCaps.currentExtent.height;
+        fbCreateInfo.layers = 1;
+        VkFramebuffer swapchainFb = {};
+        res = vkCreateFramebuffer(dev, &fbCreateInfo, nullptr, &swapchainFb);
+        if (res != VK_SUCCESS) {
+            std::cout << "Failed to create Framebuffer\n";
+            return -1;
+        } else {
+            std::cout << "Created framebuffer for swapchain image: " << idx << "\n";
+        }
+        fb.emplace_back(swapchainFb);
+    }
+
+    ///
+    /// Create Shader resources.
+    ///
+
+    ///
+    /// First, create a VkBuffer object for storing the vertex data.
+    /// Currently we only have position information as part of our vertex data.
+    ///
+    VkBuffer vtxBuffer = {};
+    VkBufferCreateInfo vtxInputBufferCreateInfo = {};
+    vtxInputBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    vtxInputBufferCreateInfo.size = 9 * sizeof(float);
+    vtxInputBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    std::cout << "Req size: " << vtxInputBufferCreateInfo.size << "\n";
+
+    res = vkCreateBuffer(dev, &vtxInputBufferCreateInfo, nullptr, &vtxBuffer);
+    if (res != VK_SUCCESS) {
+        std::cout << "Failed to create input vtx buffer\n";
+        return -1;
+    }
+
+    ///
+    /// Get the memory requirements for the created VkBuffer object
+    ///
+    VkMemoryRequirements vtxInputBufferReqs = {};
+    vkGetBufferMemoryRequirements(dev, vtxBuffer, &vtxInputBufferReqs);
+    PrintVkMemoryRequirements(vtxInputBufferReqs);
+
+    
+    VkMemoryAllocateInfo vtxInputBufferMemInfo = {};
+    vtxInputBufferMemInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    vtxInputBufferMemInfo.allocationSize = vtxInputBufferReqs.size;
+    vtxInputBufferMemInfo.memoryTypeIndex = 3U; // Use the 256 MiB sized BAR mapping on Intel Xe Alchemist.
+    VkDeviceMemory devMemory = {};
+
+    ///
+    /// Allocate device memory backing for the VkBuffer object.
+    ///
+    res = vkAllocateMemory(dev, &vtxInputBufferMemInfo, nullptr, &devMemory);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to allocate memory\n";
+        return -1;
+    }
+
+    ///
+    /// Map the allocated device memory into the CPU's VA
+    /// and copy the vertex data into the memory before unmapping it.
+    ///
+    float *cpuVAPtr = nullptr;
+    res = vkMapMemory(dev, devMemory, 0U, VK_WHOLE_SIZE, 0U, reinterpret_cast<void **>(&cpuVAPtr));
+    if (res != VK_SUCCESS || cpuVAPtr == nullptr) {
+        std::cerr << "Failed to map memory\n";
+        return -1;
+    } else {
+        std::cout << "VA PTR: " << cpuVAPtr << "\n";
+        std::cout << "Allocated size: " << vtxInputBufferReqs.size << "\n";
+        std::cout << "Input size: " << sizeof(vertexData) << "\n";
+    }
+
+    /*
+    float *tmpPtr = cpuVAPtr;
+    for (uint32_t idx = 0U; idx < sizeof(vertexData) / sizeof(float); idx++) {
+        *tmpPtr++ = vertexData[idx];
+    }*/
+
+    std::memcpy(cpuVAPtr, vertexData, sizeof(vertexData));
+
+    vkUnmapMemory(dev, devMemory);
+
+    ///
+    /// Bind the allocated vkDeviceMemory with the vkBuffer
+    ///
+    res = vkBindBufferMemory(dev, vtxBuffer, devMemory, 0U);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to bind VkDeviceMemory to VkBuffer\n";
+        return -1;
+    }
+
+    VkDescriptorSetLayoutBinding defaultBindingLayout = {};
+    defaultBindingLayout.binding = 0U;
+    defaultBindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    defaultBindingLayout.descriptorCount = 1U;
+    defaultBindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+    VkDescriptorSetLayout defaultDescriptorSetLayout = {};
+    VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {};
+    descSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descSetLayoutCreateInfo.bindingCount = 1U;
+    descSetLayoutCreateInfo.pBindings = &defaultBindingLayout;
+
+    res = vkCreateDescriptorSetLayout(dev, &descSetLayoutCreateInfo, nullptr, &defaultDescriptorSetLayout);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to create descriptor set\n";
+        return -1;
+    } else {
+        std::cerr << "Created descriptor set layout\n";
+    }
+
+    VkPipelineLayout defaultPipelineLayout = {};
+    VkPipelineLayoutCreateInfo defaultPipelineLayoutCreateInfo = {};
+    defaultPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    defaultPipelineLayoutCreateInfo.setLayoutCount = 1U;
+    defaultPipelineLayoutCreateInfo.pSetLayouts = &defaultDescriptorSetLayout;
+
+    res = vkCreatePipelineLayout(dev, &defaultPipelineLayoutCreateInfo, nullptr, &defaultPipelineLayout);
+    if (res != VK_SUCCESS) {
+        std::cout << "Failed to create pipeline layout\n";
+        return -1;
+    }
+
+    ///
+    /// Create the sole PSO.
+    ///
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStagesCreateInfo = {};
+    VkPipelineShaderStageCreateInfo vtxStageCreateInfo = {};
+    vtxStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vtxStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vtxStageCreateInfo.module = vsShaderModule;
+    vtxStageCreateInfo.pName = "main";
+
+    VkPipelineShaderStageCreateInfo fragStageCreateInfo = {};
+    fragStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragStageCreateInfo.module = fsShaderModule;
+    fragStageCreateInfo.pName = "main";
+
+    shaderStagesCreateInfo.emplace_back(vtxStageCreateInfo);
+    shaderStagesCreateInfo.emplace_back(fragStageCreateInfo);
+
+    VkVertexInputBindingDescription vtxInputBindingDesc = {};
+    vtxInputBindingDesc.binding = 0U;
+    vtxInputBindingDesc.stride = sizeof(float);
+    vtxInputBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    VkVertexInputAttributeDescription vtxInputAttributeDesc = {};
+    vtxInputAttributeDesc.location = 0U;
+    vtxInputAttributeDesc.binding = 0U;
+    vtxInputAttributeDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    vtxInputAttributeDesc.offset = 0U;
+
+    VkPipelineVertexInputStateCreateInfo vtxInputStateCreateInfo = {};
+    vtxInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vtxInputStateCreateInfo.vertexBindingDescriptionCount = 1U;
+    vtxInputStateCreateInfo.pVertexBindingDescriptions = &vtxInputBindingDesc;
+    vtxInputStateCreateInfo.vertexAttributeDescriptionCount = 1U;
+    vtxInputStateCreateInfo.pVertexAttributeDescriptions = &vtxInputAttributeDesc;
+
+    VkPipelineInputAssemblyStateCreateInfo IAStateCreateInfo = {};
+    IAStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    IAStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+    VkViewport viewport = {};
+    viewport.x = 0.0F;
+    viewport.y = 0.0F;
+    viewport.width = static_cast<float>(surfaceCaps.currentExtent.width);
+    viewport.height = static_cast<float>(surfaceCaps.currentExtent.height);
+    viewport.minDepth = 0.0F;
+    viewport.maxDepth = 1.0F;
+
+    VkRect2D scissor = {};
+    scissor.extent.width = surfaceCaps.currentExtent.width;
+    scissor.extent.height = surfaceCaps.currentExtent.height;
+
+    VkPipelineViewportStateCreateInfo viewportStateCreateInfo = {};
+    viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewportStateCreateInfo.viewportCount = 1U;
+    viewportStateCreateInfo.pViewports = &viewport;
+    viewportStateCreateInfo.scissorCount = 1U;
+    viewportStateCreateInfo.pScissors = &scissor;
+
+    VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo = {};
+    rasterizationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
+    rasterizationStateCreateInfo.lineWidth = 1.0F;
+
+    VkPipelineMultisampleStateCreateInfo msStateCreateInfo = {};
+    msStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    msStateCreateInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+    VkPipelineColorBlendAttachmentState colorBlendAttachmentState = {};
+    colorBlendAttachmentState.blendEnable = false;
+    colorBlendAttachmentState.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+
+    VkPipelineColorBlendStateCreateInfo colorBlendStateCreateInfo = {};
+    colorBlendStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    colorBlendStateCreateInfo.attachmentCount = 1U;
+    colorBlendStateCreateInfo.pAttachments = &colorBlendAttachmentState;
+    
+    VkGraphicsPipelineCreateInfo graphicsPSOCreateInfo = {};
+    graphicsPSOCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    graphicsPSOCreateInfo.stageCount = 2U; // Vertex and Fragment stages.
+    graphicsPSOCreateInfo.pStages = shaderStagesCreateInfo.data();
+    graphicsPSOCreateInfo.pVertexInputState = &vtxInputStateCreateInfo;
+    graphicsPSOCreateInfo.pInputAssemblyState = &IAStateCreateInfo;
+    graphicsPSOCreateInfo.pViewportState = &viewportStateCreateInfo;
+    graphicsPSOCreateInfo.pRasterizationState = &rasterizationStateCreateInfo;
+    graphicsPSOCreateInfo.pMultisampleState = &msStateCreateInfo;
+    graphicsPSOCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
+    graphicsPSOCreateInfo.layout = defaultPipelineLayout;
+    graphicsPSOCreateInfo.renderPass = clearRenderPass; 
+    graphicsPSOCreateInfo.subpass = 0U;
+
+    VkPipeline pipeline = {};
+    res = vkCreateGraphicsPipelines(dev, VK_NULL_HANDLE, 1U, &graphicsPSOCreateInfo, nullptr, &pipeline);
+    if (res != VK_SUCCESS) {
+        std::cerr << "Failed to create graphics PSO\n";
+        return -1;
+    } else {
+        std::cout << "Created graphics pipeline\n";
+    }
+
     while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
+        ///
+        /// Reset the image acquire fence.
+        ///
         res = vkResetFences(dev, 1U, &imageAcquireFence);
         if (res != VK_SUCCESS) {
             std::cerr << "Failed to reset fence\n";
         }
 
+        ///
+        /// Query the status of the post-submit fence.
+        /// Wait on the fence if the fence is not signaled
+        /// and reset the fence.
+        ///
         res = vkGetFenceStatus(dev, queueSubmitPostFence);
         if (res == VK_ERROR_DEVICE_LOST) {
             std::cerr << "Failed to get post submit fence status\n";
@@ -508,7 +913,9 @@ int main()
             }
         }
 
-
+        ///
+        /// Acquire the next available swapchain image from the swapchain.
+        ///
         uint32_t acquiredImageIdx = 0U;
         res = vkAcquireNextImageKHR(dev, swapchain, 100000000U, VK_NULL_HANDLE,
                                     imageAcquireFence, &acquiredImageIdx);
@@ -518,31 +925,25 @@ int main()
             return -1;
         }
 
+        ///
+        /// Wait on the acquire fence.
+        ///
         res = vkWaitForFences(dev, 1U, &imageAcquireFence, VK_TRUE, 100000000U);
         if (res != VK_SUCCESS) {
             std::cerr << "Timed out waiting for image acquisition\n";
             return -1;
         }
  
-        VkImageSubresourceRange acquireRange = {};
-        acquireRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        acquireRange.levelCount = 1;
-        acquireRange.layerCount = 1;
-        VkImageMemoryBarrier acquireImageMemoryBarrier = {};
-        acquireImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        acquireImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        acquireImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        acquireImageMemoryBarrier.image = swapchainImages[acquiredImageIdx];
-        acquireImageMemoryBarrier.subresourceRange = acquireRange;
-
-        //VkClearColorValue color = {static_cast<uint32_t>(red--), 0U, static_cast<uint32_t>(blue++), 0U};
-        VkClearColorValue color = {red.operator++(), green.operator++(), blue.operator++(), 0.0};
+        VkClearColorValue color = {0.0, 0.0, 190.0, 0.0};
         
         VkImageSubresourceRange range = {};
         range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         range.levelCount = 1;
         range.layerCount = 1;
 
+        ///
+        /// Begin command buffer recording.
+        ///
         VkCommandBufferBeginInfo cmdBufferBeginInfo = {};
         cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         cmdBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
@@ -552,31 +953,43 @@ int main()
             return -1;
         }
 
+        vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+        uint64_t offset = 0U;
+        vkCmdBindVertexBuffers(cmdBuffer, 0U, 1U, &vtxBuffer, &offset);
+
         ///
-        /// Since we are not using render passes in this code, we'll need to manually transition image layouts.
-        /// This particular pipeline barrier transitions the swapchain buffers from VK_IMAGE_LAYOUT_UNDEFINED to
-        /// VK_IMAGE_LAYOUT_GENERAL.
+        /// Begin the renderpass
         ///
-        vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-                             VK_DEPENDENCY_BY_REGION_BIT, 0, nullptr, 0, nullptr, 1, &acquireImageMemoryBarrier);
+        VkClearValue clearValues[2];
+        clearValues[0].color = clearValues[1].color = color;
 
-        vkCmdClearColorImage(cmdBuffer, swapchainImages[acquiredImageIdx],
-                             VK_IMAGE_LAYOUT_GENERAL, &color, 1U, &range);
+        VkRect2D renderArea = {};
+        renderArea.extent = surfaceCaps.currentExtent;
 
-        VkImageSubresourceRange presentRange = {};
-        presentRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        presentRange.levelCount = 1;
-        presentRange.layerCount = 1;
-        VkImageMemoryBarrier presentImageMemoryBarrier = {};
-        presentImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        presentImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        presentImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-        presentImageMemoryBarrier.image = swapchainImages[acquiredImageIdx];
-        presentImageMemoryBarrier.subresourceRange = presentRange;
+        VkRenderPassBeginInfo renderPassBeginInfo = {};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = clearRenderPass;
+        renderPassBeginInfo.framebuffer = fb[acquiredImageIdx]; 
+        renderPassBeginInfo.renderArea = renderArea;
+        renderPassBeginInfo.clearValueCount = 2U;
+        renderPassBeginInfo.pClearValues = clearValues;
 
-        vkCmdPipelineBarrier(cmdBuffer, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-                             VK_DEPENDENCY_BY_REGION_BIT, 0, nullptr, 0, nullptr, 1, &presentImageMemoryBarrier);
+        vkCmdBeginRenderPass(cmdBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
+        ///
+        /// Insert the command to draw a triangle
+        ///
+        vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
+
+        ///
+        /// End the renderpass
+        ///
+        vkCmdEndRenderPass(cmdBuffer);
+
+        ///
+        /// End command buffer recording.
+        ///
         res = vkEndCommandBuffer(cmdBuffer);
         if (res != VK_SUCCESS) {
             std::cerr << "Failed to end command buffer\n";
@@ -587,13 +1000,28 @@ int main()
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1U;
         submitInfo.pCommandBuffers = &cmdBuffer;
+
+        ///
+        /// Submit the recorded command buffer to the GPU for rendering.
+        ///
         res = vkQueueSubmit(queue, 1U, &submitInfo, queueSubmitPostFence);
         if (res != VK_SUCCESS) {
             std::cerr << "Failed to kickoff\n";
             return -1;
         }
 
-        
+        ///
+        /// Wait on the post-submit fence.
+        ///
+        res = vkWaitForFences(dev, 1U, &queueSubmitPostFence, VK_TRUE, 1000000000U);
+        if (res != VK_SUCCESS) {
+            std::cerr << "Failed to wait on post-flip fence\n";
+            return -1;
+        }
+
+        ///
+        /// Present the swapchain image.
+        ///        
         VkPresentInfoKHR presentInfo = {};
         VkResult presentResult = {};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

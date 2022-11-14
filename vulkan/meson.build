@@ -13,3 +13,8 @@ executable('01_clear_color', '01_clear_color.cpp',
            dependencies : dependenciesList,
            link_with : libglpg)
 
+executable('02_hello_triangle', '02_hello_triangle.cpp',
+           include_directories : vk_include_path,
+           dependencies : dependenciesList,
+           link_with : libglpg)
+

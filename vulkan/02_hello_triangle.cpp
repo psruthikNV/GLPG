@@ -19,9 +19,9 @@
 #undef CreateWindow
 
 const float vertexData[] = {
-    -0.5f, -0.5f, 0.0f,
     0.5f, -0.5f, 0.0f,
-    0.0f, 0.5f, 0.0f
+    0.5f, 0.5f, 0.0f,
+    -0.5f, 0.5f, 0.0f
 };
 
 template <typename T>
@@ -562,11 +562,8 @@ int main()
     ///
 
     ///
-    /// First, describe the sole swapchain attachment.
-    /// We have two attachment descriptions here since our
-    /// swapchain contains two color buffers.
+    /// First, describe the sole swapchain color buffer attachment.
     ///
-    std::vector<VkAttachmentDescription> swapchainAttachmentDescs;
     VkAttachmentDescription swapchainAttachmentDesc = {};
     swapchainAttachmentDesc.format = VK_FORMAT_B8G8R8A8_UNORM;
     swapchainAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -576,8 +573,6 @@ int main()
     swapchainAttachmentDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     swapchainAttachmentDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     swapchainAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; 
-    swapchainAttachmentDescs.emplace_back(swapchainAttachmentDesc);
-    swapchainAttachmentDescs.emplace_back(swapchainAttachmentDesc);
 
     ///
     /// Next, describe the sole subpass inside the renderpass.
@@ -598,7 +593,7 @@ int main()
     VkRenderPassCreateInfo clearRenderPassCreateInfo = {};
     clearRenderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     clearRenderPassCreateInfo.attachmentCount = 1U;
-    clearRenderPassCreateInfo.pAttachments = &swapchainAttachmentDescs[0];
+    clearRenderPassCreateInfo.pAttachments = &swapchainAttachmentDesc;
     clearRenderPassCreateInfo.subpassCount = 1U;
     clearRenderPassCreateInfo.pSubpasses = &colorSubpassDesc;
 
@@ -723,12 +718,6 @@ int main()
         std::cout << "Input size: " << sizeof(vertexData) << "\n";
     }
 
-    /*
-    float *tmpPtr = cpuVAPtr;
-    for (uint32_t idx = 0U; idx < sizeof(vertexData) / sizeof(float); idx++) {
-        *tmpPtr++ = vertexData[idx];
-    }*/
-
     std::memcpy(cpuVAPtr, vertexData, sizeof(vertexData));
 
     vkUnmapMemory(dev, devMemory);
@@ -742,31 +731,9 @@ int main()
         return -1;
     }
 
-    VkDescriptorSetLayoutBinding defaultBindingLayout = {};
-    defaultBindingLayout.binding = 0U;
-    defaultBindingLayout.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    defaultBindingLayout.descriptorCount = 1U;
-    defaultBindingLayout.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-    VkDescriptorSetLayout defaultDescriptorSetLayout = {};
-    VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {};
-    descSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descSetLayoutCreateInfo.bindingCount = 1U;
-    descSetLayoutCreateInfo.pBindings = &defaultBindingLayout;
-
-    res = vkCreateDescriptorSetLayout(dev, &descSetLayoutCreateInfo, nullptr, &defaultDescriptorSetLayout);
-    if (res != VK_SUCCESS) {
-        std::cerr << "Failed to create descriptor set\n";
-        return -1;
-    } else {
-        std::cerr << "Created descriptor set layout\n";
-    }
-
     VkPipelineLayout defaultPipelineLayout = {};
     VkPipelineLayoutCreateInfo defaultPipelineLayoutCreateInfo = {};
     defaultPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    defaultPipelineLayoutCreateInfo.setLayoutCount = 1U;
-    defaultPipelineLayoutCreateInfo.pSetLayouts = &defaultDescriptorSetLayout;
 
     res = vkCreatePipelineLayout(dev, &defaultPipelineLayoutCreateInfo, nullptr, &defaultPipelineLayout);
     if (res != VK_SUCCESS) {
@@ -795,7 +762,7 @@ int main()
 
     VkVertexInputBindingDescription vtxInputBindingDesc = {};
     vtxInputBindingDesc.binding = 0U;
-    vtxInputBindingDesc.stride = sizeof(float);
+    vtxInputBindingDesc.stride = 3 * sizeof(float);
     vtxInputBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     VkVertexInputAttributeDescription vtxInputAttributeDesc = {};

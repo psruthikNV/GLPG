@@ -58,9 +58,9 @@ int main()
     counter_f red(dist(gen));
     counter_f green(dist(gen));
     counter_f blue(dist(gen));
-    const char *compiledVSPath = "C:/repos/GLPG/vulkan/shaders/a.spv";
+    const char *compiledVSPath = "C:/repos/GLPG/build/vulkan/02_triangle_vs";
     const char *vsCompiledBlob;
-    const char *compiledFSPath = "C:/repos/GLPG/vulkan/shaders/a_fs.spv";
+    const char *compiledFSPath = "C:/repos/GLPG/build/vulkan/02_triangle_fs";
     const char *fsCompiledBlob;
     ///
     /// TODO: Query modes dynamically.
@@ -469,7 +469,7 @@ int main()
     swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    swapchainCreateInfo.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 
     VkSwapchainKHR swapchain = {};
     res = vkCreateSwapchainKHR(dev, &swapchainCreateInfo, nullptr, &swapchain);

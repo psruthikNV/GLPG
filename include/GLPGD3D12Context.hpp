@@ -20,8 +20,7 @@ namespace GLPG {
             ///
             /// 1. Queries and enables the debug interface if GLPG_IS_DEBUG is defined.
             /// 2. Creates a IDXGIFactory object by invoking CreateDXGIFactory.
-            /// 3. Invokes EnumerateAdapters and EnumerateOutputs to find an adapter
-            ///    and a output to use.
+            /// 3. Invokes EnumerateAdapters to find an adapter.
             /// 4. Creates the D3D12Device object by invoking D3D12CreateDevice on the active adapter.
             /// 5. Initializes the InfoQueue if GLPG_IS_DEBUG is defined.
             /// 6. Creates a normal priority command queue.
@@ -123,7 +122,6 @@ namespace GLPG {
             Microsoft::WRL::ComPtr<ID3D12CommandAllocator> pCmdAllocator; ///< ComPtr to a ID3D12CommandAllocator.
             Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> pCmdList; ///< ComPtr to a ID3D12GraphicsCommandList.
             std::vector<IDXGIAdapter*> adapters; ///< Array of pointers to the list of available IDXGIAdapters.
-            std::vector<IDXGIOutput*> outputs; ///< Array of pointers to the list of available IDXGIOutputs.
 #ifdef GLPG_IS_DEBUG
             Microsoft::WRL::ComPtr<ID3D12Debug> pdebugInterface; ///< ComPtr to the ID3D12Debug interface.
             Microsoft::WRL::ComPtr<ID3D12InfoQueue> pdebugInfoQueue; ///< ComPtr to ID3D12InfoQueue.
@@ -133,8 +131,6 @@ namespace GLPG {
             uint32_t numAdapters = 0U; ///< Number of available adapters.
             uint32_t adapterIdxToUse = 0U; ///< Index to the adapter to be used in adapters.
             uint32_t adapterVidMem = 0U; ///< Vidmem of the active adapter.
-            uint32_t numOutputs = 0U; ///< Number of available outputs.
-            uint32_t outputIdxToUse = 0U; ///< Index to the output to be used in outputs.
             bool running = true; ///< Specifies the state of the program. Set to false by ~GLPGD3D12Context.
 #ifdef GLPG_IS_DEBUG
             bool debugInited = true; ///< Specifies if InitializeDebugInfoQueue succeded.
@@ -159,17 +155,5 @@ namespace GLPG {
             ///
             bool EnumerateAdapters();
 
-            ///
-            /// @brief Enumerates the list of available outputs as reported by IDXGIAdapter::EnumOutputs.
-            ///        By default the output with the maximum resolution
-            ///        (calculated as DXGI_OUTPUT_DESC.DesktopCoordinates.right * DXGI_OUTPUT_DESC.DesktopCoordinates.bottom
-            ///        is selected as the active output. outputIdxToUse is also set to the same output.
-            ///
-            /// @returns bool
-            ///
-            /// @retval false On failure.
-            /// @retval true On success.
-            ///
-            bool EnumerateOutputs();
     };
 } // namespace GLPG

@@ -88,37 +88,6 @@ bool GLPGD3D11Context::EnumerateAdapters() {
     return true;
 }
 
-bool GLPGD3D11Context::EnumerateOutputs() {
-    IDXGIOutput* pOutput;
-    while(adapters[adapterIdxToUse]->EnumOutputs(numOutputs, &pOutput) !=
-          DXGI_ERROR_NOT_FOUND) {
-        outputs.push_back(pOutput);
-        ++numOutputs;
-    }
-
-    if (numOutputs == 0U) {
-        return false;
-    }
-
-    // By default we select the output with the most resolution.
-    uint64_t maxRes = 0U;
-    for (uint32_t idx = 0U; idx < numOutputs; idx++) {
-        DXGI_OUTPUT_DESC outputDesc = {};
-        if (outputs[idx]->GetDesc(&outputDesc) == S_OK) {
-            uint32_t currentIdxMaxRes = outputDesc.DesktopCoordinates.right *
-                                        outputDesc.DesktopCoordinates.bottom;
-            if (maxRes < currentIdxMaxRes) {
-                maxRes = currentIdxMaxRes;
-                outputIdxToUse = idx;
-                defaultWidth = outputDesc.DesktopCoordinates.right;
-                defaultHeight = outputDesc.DesktopCoordinates.bottom;
-            }
-        }
-    }
-
-    return true;
-}
-
 bool GLPGD3D11Context::InitializeSwapchain() {
     adapters[adapterIdxToUse]->GetParent(IID_PPV_ARGS(&pdxgiFactory2));
     if (!pdxgiFactory2) {
@@ -169,12 +138,6 @@ GLPGD3D11Context::GLPGD3D11Context() {
 
     if (!EnumerateAdapters()) {
         std::cerr << "Failed to enumerate adapters\n";
-        inited = false;
-        return;
-    }
-
-    if (!EnumerateOutputs()) {
-        std::cerr << "Failed to enumerate outputs\n";
         inited = false;
         return;
     }

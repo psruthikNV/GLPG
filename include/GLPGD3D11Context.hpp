@@ -33,7 +33,6 @@ namespace GLPG {
             Microsoft::WRL::ComPtr<IDXGISwapChain1> pSwapchain;
             Microsoft::WRL::ComPtr<IDXGISwapChain3> pSwapchain3;
             std::vector<IDXGIAdapter*> adapters;
-            std::vector<IDXGIOutput*> outputs;
 #ifdef GLPG_IS_DEBUG
             Microsoft::WRL::ComPtr<ID3D11InfoQueue> pdebugInfoQueue;
             std::thread InfoQueuePollThread;
@@ -42,10 +41,7 @@ namespace GLPG {
             uint32_t numAdapters = 0U;
             uint32_t adapterIdxToUse = 0U;
             uint32_t adapterVidMem = 0U;
-            uint32_t numOutputs = 0U;
-            uint32_t outputIdxToUse = 0U;
             bool EnumerateAdapters();
-            bool EnumerateOutputs();
             bool running = true; // The destructor sets this to false
 #ifdef GLPG_IS_DEBUG
             bool debugInited = true;

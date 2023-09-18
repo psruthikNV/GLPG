@@ -2,7 +2,7 @@ project('glpg', 'cpp',
         version : '0.0.2',
         default_options : 'cpp_std=c++17')
 
-glpg_include_path = include_directories('./include')
+glpg_include_path = [include_directories('./include'), include_directories('./include/3rdparty')]
 glpg_compiler = meson.get_compiler('cpp')
 buildTests = get_option('enable_tests')
 buildType = get_option('buildtype')

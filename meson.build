@@ -22,8 +22,10 @@ if host_machine.system() == 'linux'
                        glpg_compiler.find_library('xkbcommon-x11')]
 
 elif host_machine.system() == 'windows'
+  glpg_include_path += include_directories('./sdk/d3d8/include')
   dependenciesList = [glpg_compiler.find_library('opengl32')]
   dependenciesList += [glpg_compiler.find_library('user32')]
+  dependenciesList += [glpg_compiler.find_library('D3d8', dirs :[meson.current_source_dir() + './sdk/d3d8/lib'])]
 endif
 
 subdir('src')
@@ -32,7 +34,8 @@ if buildTests == true
     subdir('tests')
 endif
 if host_machine.system() == 'windows'
+  subdir('d3d8')
+  subdir('d3d9')
   subdir('d3d11')
   subdir('d3d12')
-  subdir('vulkan')
 endif

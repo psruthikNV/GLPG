@@ -1,4 +1,4 @@
-# NOTE: Use 32bit builds when using D3D2 - D3D7
+# NOTE: Use 32bit builds when using D3D2 - D3D8
 # cmake -T v142,host=x64 -G "Visual Studio 16 2019" -A Win32 ../
 
 cmake_minimum_required(VERSION 3.10)
@@ -20,7 +20,8 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         PRIVATE opengl32
         PRIVATE d3d9
         PRIVATE dxguid
-        PRIVATE ddraw)
+        PRIVATE ddraw
+        PRIVATE d3d8)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "LINUX")
     list(APPEND GLPG_LIBRARIES
         PRIVATE xcb
@@ -36,8 +37,9 @@ add_subdirectory(src)
 #add_subdirectory(examples)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    add_subdirectory(d3d2)
-    add_subdirectory(d3d7)
+#    add_subdirectory(d3d2)
+#    add_subdirectory(d3d7)
+    add_subdirectory(d3d8)
 #    add_subdirectory(d3d9)
 #    add_subdirectory(d3d11)
 #    add_subdirectory(d3d12)

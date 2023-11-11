@@ -1,4 +1,4 @@
-set(GLPG_INCLUDES PRIVATE ${CMAKE_SOURCE_DIR}/include)
+set(GLPG_INCLUDES PRIVATE ${CMAKE_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/sdk/d3d8/include)
 
 set(GLPG_SOURCES)
 
@@ -8,7 +8,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         GLPGWindowImpl_Win32.cpp GLPGContextImpl_GL_WGL.cpp
         GLPGContextImpl_Platform_WGL.cpp GLPGEvent_Win32.cpp
         GLPGEventImpl_Win32.cpp GLPGD3D12Context.cpp
-        GLPGD3D11Context.cpp GLPGD3D9Context.cpp)
+        GLPGD3D11Context.cpp GLPGD3D9Context.cpp GLPGD3D8Context.cpp)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "LINUX")
     list(APPEND GLPG_SOURCES
         GLPGWindow_Xcb.cpp GLPGWindowImpl_Xcb.cpp

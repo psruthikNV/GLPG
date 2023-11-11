@@ -11,6 +11,10 @@ project(GLPG)
 #endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DGLPG_IS_DEBUG")
+SET(CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} /D \"SAFESEH:NO\"")
+SET(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 
 set(GLPG_LIBRARIES)
 
@@ -21,7 +25,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         PRIVATE d3d9
         PRIVATE dxguid
         PRIVATE ddraw
-        PRIVATE d3d8)
+        PRIVATE ${CMAKE_SOURCE_DIR}/sdk/d3d8/lib/d3d8.lib)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "LINUX")
     list(APPEND GLPG_LIBRARIES
         PRIVATE xcb
@@ -34,8 +38,6 @@ else()
 endif()
 
 add_subdirectory(src)
-#add_subdirectory(examples)
-
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
 #    add_subdirectory(d3d2)
 #    add_subdirectory(d3d7)

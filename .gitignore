@@ -1,6 +1,9 @@
 # Ignore local Meson build dir
 build/
 
+# Ignore local CMake build dir
+build_cmake/
+
 # Ignore Doxygen output
 docs/html
 docs/latex

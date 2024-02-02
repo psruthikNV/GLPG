@@ -11,6 +11,7 @@ bool DriverEnumCallback(GUID* pGUID, TCHAR* strDesc, TCHAR* strName, VOID*, HMON
 {
     std::cout << "Index : " << idx++ << "\n";
     std::cout << "strDesc: " << strDesc << " strName: " << strName << "\n";
+    std::cout << "GUID: " << pGUID << "\n";
     adapterGUID = pGUID;
     return true;
 }
@@ -28,9 +29,7 @@ int main() {
 
     LPDIRECTDRAW7 pDD;
     IDirectDraw7* ddraw = nullptr;
-    std::cout << "Using GUID: " << adapterGUID << "\n";
-    std::cout << "GUID.Data1 = " << adapterGUID->Data1 << " GUID.Data2 = " << adapterGUID->Data2 << " GUID.Data3 = " << adapterGUID->Data3 << " GUID.Data4 = " << adapterGUID->Data4 << "\n";
-    auto ret = DirectDrawCreateEx(adapterGUID, (void**)&pDD, IID_IDirectDraw7, nullptr);
+    auto ret = DirectDrawCreateEx(nullptr, (void**)&pDD, IID_IDirectDraw7, nullptr);
     if (ret == S_OK) {
         std::cerr << "Created Direct Draw\n";
     } else {
@@ -146,5 +145,22 @@ int main() {
         std::cerr << "Failed to retrieve DD caps\n";
         std::cerr << "Err: " << std::hex << ret << "\n";
         return -1;
+    }
+
+    DDSCAPS2      ddsCaps2 { };
+    DWORD         dwTotal;
+    DWORD         dwFree;
+    ret = pDD->GetAvailableVidMem(&ddsCaps2, &dwTotal, &dwFree);
+    if (ret == S_OK) {
+        std::cout << "Vidmem: " << dwTotal << " Free Vidmem: " << dwFree << "\n";
+    }
+
+    DDDEVICEIDENTIFIER2 deviceIdentifier { };
+    ret = pDD->GetDeviceIdentifier(&deviceIdentifier, 0);
+    if (ret == S_OK) {
+        std::cout << "Driver: " << deviceIdentifier.szDriver << " Description: " << deviceIdentifier.szDescription << "\n";
+    } else {
+        std::cout << "Failed to query device identifier\n";
+        std::cerr << "Err: " << std::hex << ret << "\n";
     }
 }

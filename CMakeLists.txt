@@ -25,7 +25,13 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         PRIVATE d3d9
         PRIVATE dxguid
         PRIVATE ddraw
-        PRIVATE ${CMAKE_SOURCE_DIR}/sdk/d3d8/lib/d3d8.lib)
+        PRIVATE D3D11
+        PRIVATE D3D12
+        PRIVATE DXGI)
+    if ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
+        list(APPEND GLPG_LIBRARIES
+            PRIVATE ${CMAKE_SOURCE_DIR}/sdk/d3d8/lib/d3d8.lib)
+    endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "LINUX")
     list(APPEND GLPG_LIBRARIES
         PRIVATE xcb

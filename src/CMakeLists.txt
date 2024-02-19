@@ -8,7 +8,11 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         GLPGWindowImpl_Win32.cpp GLPGContextImpl_GL_WGL.cpp GLPGContext_GL.cpp
         GLPGContextImpl_Platform_WGL.cpp GLPGEvent_Win32.cpp
         GLPGEventImpl_Win32.cpp GLPGD3D12Context.cpp
-        GLPGD3D11Context.cpp GLPGD3D9Context.cpp GLPGD3D8Context.cpp)
+        GLPGD3D11Context.cpp GLPGD3D9Context.cpp)
+    if ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
+        list(APPEND GLPG_SOURCES
+            GLPGD3D8Context.cpp)
+    endif()
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "LINUX")
     list(APPEND GLPG_SOURCES
         GLPGWindow_Xcb.cpp GLPGWindowImpl_Xcb.cpp GLPGContext_GL.cpp
@@ -19,6 +23,7 @@ else()
 endif()
 
 add_library(glpg STATIC ${GLPG_SOURCES})
+#add_library(glpg SHARED ${GLPG_SOURCES})
 
 target_include_directories(glpg ${GLPG_INCLUDES})
 target_link_libraries(glpg ${GLPG_LIBRARIES})

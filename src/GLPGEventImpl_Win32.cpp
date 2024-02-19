@@ -97,6 +97,9 @@ namespace GLPG {
                         case 0x33:
                             rv = GLPGEvent::Key_3;
                             break;
+                        case 0x34:
+                            rv = GLPGEvent::Key_4;
+                            break;
                     }
                     break;
                 case WM_SYSKEYDOWN:

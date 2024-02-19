@@ -60,3 +60,5 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
         add_subdirectory(d3d8)
     endif()
 endif()
+
+add_subdirectory(downscaler)

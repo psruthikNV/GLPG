@@ -30,5 +30,6 @@ namespace GLPG {
         Key_1,
         Key_2,
         Key_3,
+        Key_4
     };
 }

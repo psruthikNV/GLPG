@@ -37,13 +37,20 @@ else()
     message(SEND_ERROR "Unsupported platform!")
 endif()
 
+
 add_subdirectory(src)
 
+# Build OpenGL examples only on 64bit builds
+if (NOT "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
+    add_subdirectory(examples)
+endif()
+
+# Build D3D2, D3D7 and D3D8 examples only on 32bit builds
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    add_subdirectory(d3d2)
-    add_subdirectory(d3d7)
-    add_subdirectory(d3d8)
     add_subdirectory(d3d9)
-#    add_subdirectory(d3d11)
-#    add_subdirectory(d3d12)
+    if ("${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
+        add_subdirectory(d3d2)
+        add_subdirectory(d3d7)
+        add_subdirectory(d3d8)
+    endif()
 endif()

@@ -61,6 +61,23 @@ FileFormat InputParser::toFileFormat(const std::string &inputString) noexcept
     return ret;
 }
 
+Filter InputParser::toFilter(const std::string &inputString) noexcept
+{
+    Filter ret { };
+
+    if (inputString.empty()) {
+        ret = Filter::unspecified;
+    } else if (inputString == "nearest") {
+        ret = Filter::nearest;
+    } else if (inputString == "lanczos") {
+        ret = Filter::lanczos;
+    } else {
+        ret = Filter::unrecognized;
+    }
+
+    return ret;
+}
+
 utils::InputArguments InputParser::parseArgs(const std::int32_t argc, char **argv)
 {
     utils::InputArguments ret { };
@@ -79,6 +96,14 @@ utils::InputArguments InputParser::parseArgs(const std::int32_t argc, char **arg
             ret.windowWidth = strtol(argv[++idx], nullptr, 10U);
         } else if (!strcmp(argv[idx], "-windowHeight") && (idx != argc - 1U)){
             ret.windowHeight = strtol(argv[++idx], nullptr, 10U);
+        } else if (!strcmp(argv[idx], "-outputImageWidth") && (idx != argc - 1U)){
+            ret.outputImageWidth = strtol(argv[++idx], nullptr, 10U);
+        } else if (!strcmp(argv[idx], "-outputImageHeight") && (idx != argc - 1U)){
+            ret.outputImageHeight = strtol(argv[++idx], nullptr, 10U);
+        } else if (!strcmp(argv[idx], "-filter") && (idx != argc - 1U)) {
+            ret.filter = toFilter(std::string(argv[++idx]));
+        } else if (!strcmp(argv[idx], "-useGpu")) {
+            ret.useGpu = true;
         } else {
             throw std::invalid_argument("Unrecognized argument specified! Run with '-help' to see the list of accepted arguments.");
         }

@@ -137,6 +137,7 @@ void Decoder::decodePng()
     if (!decodedData) {
         throw std::logic_error("Failed to decode PNG image");
     }
+    std::cout << "numComp: " << numComp << "\n";
 
     for (std::uint32_t idx = 0U; idx < w * h * numComp; idx++) {
         m_decodedData.emplace_back(decodedData[idx]);

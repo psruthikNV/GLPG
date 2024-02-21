@@ -43,6 +43,21 @@ enum class FileFormat : std::uint32_t
 };
 
 ///
+/// @brief Supported downscaling filters
+///
+enum class Filter : std::uint32_t
+{
+    unspecified = 0U,
+    nearest,
+    bilinear,
+    bicubic,
+    gaussian,
+    lanczos,
+    unrecognized,
+    last = unrecognized
+};
+
+///
 /// @brief Input arguments specified by the client
 ///
 struct InputArguments
@@ -52,6 +67,10 @@ struct InputArguments
     std::uint32_t downscalingFactor; ///< The factor of downscaling to be done
     std::uint32_t windowWidth; ///< Width of window on which the image will be displayed
     std::uint32_t windowHeight; ///< Width of window on which the height will be displayed
+    std::uint32_t outputImageWidth; ///< Width of the output image to be written
+    std::uint32_t outputImageHeight; ///< Height of the output image to be written
+    Filter filter; ///< The downscaling filter to be used
+    bool useGpu; ///< Use GPU for downscaling and displaying of downscaled image
 };
 
 ///
@@ -76,6 +95,8 @@ class InputParser
         /// @returns @ref FileFormat converted from @p inputString
         ///
         static FileFormat toFileFormat(const std::string &inputString) noexcept;
+
+        static Filter toFilter(const std::string &inputString) noexcept;
 
         ///
         /// @brief Verifies the input @p args

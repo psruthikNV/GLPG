@@ -20,12 +20,15 @@
 
 #include <Windows.h>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 
 #include <GL/gl.h>
 #include <GL/glext.h>
 
+#include "downscaler.hpp"
 #include "downscaler_utils.hpp"
 #include "downscaler_decoder.hpp"
 #include "GLPGWindow.hpp"
@@ -33,6 +36,144 @@
 #include "GLPGEvent.hpp"
 #include "utils/GLPGShaderUtils.hpp"
 
+namespace downscaler
+{
+
+std::uint32_t Downscaler::pixelLocationToIndex(std::uint32_t xLocation, std::uint32_t yLocation)
+{
+    return (xLocation * m_inputWidth * 3) + yLocation * 3;
+}
+
+
+static double lanczosKernel(double x)
+{
+    if (x == 0.0) {
+        return 1.0;
+    }
+    if (std::fabs(x) >= 5U) {
+        return 0.0;
+    }
+
+    return std::sin(M_PI * x) * std::sin(M_PI * x / 5U) / (M_PI * M_PI * x * x / 5U);
+}
+
+std::tuple<uint8_t, uint8_t, uint8_t> Downscaler::lanczosResample(double x, double y)
+{
+    int ix, iy;
+    double r = 0.0, g = 0.0, b = 0.0;
+
+    for (ix = (int)(x - 5U + 1); ix <= (int)(x + 5U); ix++) {
+        for (iy = (int)(y - 5U + 1); iy <= (int)(y + 5U); iy++) {
+            if (ix >= 0 && ix < m_inputWidth && iy >= 0 && iy < m_inputHeight) {
+                double weight = lanczosKernel(x - ix) * lanczosKernel(y - iy);
+                r += weight * m_decodedData[iy * m_inputWidth + ix];
+                g += weight * m_decodedData[iy * m_inputWidth + ix + 1U];
+                b += weight * m_decodedData[iy * m_inputWidth + ix + 2U];
+            }
+        }
+    }
+
+    return std::make_tuple((uint8_t)round(r), (uint8_t)round(g), (uint8_t)round(b));
+}
+
+void Downscaler::lanczos()
+{
+    std::cout << "Using lanczos\n";
+    double scaleX { double(m_outputWidth)/double(m_inputWidth) };
+    double scaleY { double(m_outputHeight)/double(m_inputHeight) };
+
+    double invScaleX { 1.0 / scaleX };
+    double invScaleY { 1.0 / scaleY };
+
+    for (std::uint32_t y { 0U }; y < m_outputHeight; ++y) {
+        for (std::uint32_t x { 0U }; x < m_outputWidth; ++x) {
+            double originalX { x * invScaleX };
+            double originalY { y * invScaleY };
+            auto ret { lanczosResample(originalX, originalY) };
+            m_downscaledData.emplace_back(std::get<0>(ret));
+            m_downscaledData.emplace_back(std::get<1>(ret));
+            m_downscaledData.emplace_back(std::get<2>(ret));
+        }
+    }
+    std::cout << "P3\n";
+    std::cout << m_outputWidth << " " << m_outputHeight << "\n";
+    std::cout << "255\n";
+    uint32_t idx = 0U;
+    for (const std::uint8_t value : m_downscaledData)
+    {
+        ++idx;
+        std::cout << static_cast<std::uint32_t>(value);
+        if (idx % 3U == 0U) {
+            std::cout << "\n";
+        } else {
+            std::cout << " ";
+        }
+    }
+
+}
+
+void Downscaler::nearestNeighbour()
+{
+    const std::uint32_t downscalingFactor { m_inputWidth / m_outputWidth };
+    if (downscalingFactor != (m_inputHeight / m_outputHeight)) {
+        throw std::logic_error("Unsupported downscaling factor");
+    }
+
+    std::uint64_t idx { 0U };
+#if 0
+    for (; idx < (m_outputWidth * m_outputHeight * 3U); idx += 3U)
+    {
+        m_downscaledData.emplace_back(m_decodedData[idx * downscalingFactor * 2]);
+        m_downscaledData.emplace_back(m_decodedData[(idx * downscalingFactor * 2) + 1U]);
+        m_downscaledData.emplace_back(m_decodedData[(idx * downscalingFactor * 2) + 2U]);
+        //std::cout << "idx: " << idx << "\n";
+        //std::cout << "idx*dsf: " << idx * downscalingFactor << "\n";
+    }
+#endif
+    for (std::uint32_t i { 0U }; i < m_outputHeight; ++i) {
+        for (std::uint32_t j { 0U }; j < m_outputWidth; ++j) {
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor)]);
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor) + 1U]);
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor) + 2U]);
+        }
+    }
+
+    std::cout << "DSF: " << downscalingFactor << "\n";
+    std::cout << "P3\n";
+    std::cout << m_outputWidth << " " << m_outputHeight << "\n";
+    std::cout << "255\n";
+    idx = 0U;
+    for (const std::uint8_t value : m_downscaledData)
+    {
+        ++idx;
+        std::cout << static_cast<std::uint32_t>(value);
+        if (idx % 3U == 0U) {
+            std::cout << "\n";
+        } else {
+            std::cout << " ";
+        }
+    }
+}
+
+std::vector<std::uint8_t>& Downscaler::downscale()
+{
+    switch (m_filter)
+    {
+        case utils::Filter::nearest:
+            nearestNeighbour();
+            break;
+        case utils::Filter::lanczos:
+            lanczos();
+            break;
+        default:
+            throw std::logic_error("Unsupported downscaling filter");
+            break;
+    }
+
+    return m_downscaledData;
+}
+
+} // namespace downscaler
 const float vertexData[] = {
     -1.0F, -1.0F, 0.0F, 1.0F,
      1.0F, -1.0F, 1.0F, 1.0F,
@@ -62,6 +203,16 @@ const char *fragmentShaderSource =
     "   fragmentColor = texture2D(texture, texCoords);\n"
     "}\0";
 
+const char *nearestFragmentShaderSource =
+    "#version 450 core\n"
+    "out vec4 fragmentColor;\n"
+    "in vec2 texCoords;\n"
+    "uniform sampler2D texture;\n"
+    "void main()\n"
+    "{\n"
+    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * 4, gl_FragCoord.y * 4), 0);\n"
+    "}\0";
+
 int main(int argc, char **argv)
 {
 
@@ -73,6 +224,9 @@ int main(int argc, char **argv)
         decoder.init();
         auto decodedData { decoder.decode() };
         decoder.deinit();
+        downscaler::Downscaler ds(decoder.getWidth(), decoder.getHeight(), args.outputImageWidth, args.outputImageHeight,
+                                  decodedData, args.filter);
+        auto downscaledData { ds.downscale() };
         // Exception aware code ends. Error checking required.
         GLuint VBO = 0;
         GLuint VAO = 0;
@@ -127,7 +281,24 @@ int main(int argc, char **argv)
             return -1;
         }
 
+        GLuint nearestFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+        GLuint nearestProgObj = glCreateProgram();
+
+        if (!GLPG::compileShader(nearestFragShader, nearestFragmentShaderSource)) {
+            std::cout << "Nearest Fragment Shader Compilation Failed" << std::endl;
+            return -1;
+        }
+
+        glAttachShader(nearestProgObj, vtxShaderObj);
+        glAttachShader(nearestProgObj,nearestFragShader);
+
+        if (!GLPG::linkShaders(nearestProgObj)) {
+            std::cout << "Failed to link nearest Shaders" << std::endl;
+            return -1;
+        }
+
         glUseProgram(programObj);
+        //glUseProgram(nearestProgObj);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);

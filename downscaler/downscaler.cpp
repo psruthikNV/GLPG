@@ -41,7 +41,7 @@ namespace downscaler
 
 std::uint32_t Downscaler::pixelLocationToIndex(std::uint32_t xLocation, std::uint32_t yLocation)
 {
-    return (xLocation * m_inputWidth * 3) + yLocation * 3;
+    return (yLocation * m_inputWidth * 3U) + xLocation * 3U;
 }
 
 
@@ -54,41 +54,41 @@ static double lanczosKernel(double x)
         return 0.0;
     }
 
-    return std::sin(M_PI * x) * std::sin(M_PI * x / 5U) / (M_PI * M_PI * x * x / 5U);
+    double ret { std::sin(M_PI * x) * std::sin(M_PI * x / 5U) / (M_PI * M_PI * x * x / 5U) };
+    return ret;
 }
 
 std::tuple<uint8_t, uint8_t, uint8_t> Downscaler::lanczosResample(double x, double y)
 {
     int ix, iy;
     double r = 0.0, g = 0.0, b = 0.0;
+    double weights { 0.0 };
 
     for (ix = (int)(x - 5U + 1); ix <= (int)(x + 5U); ix++) {
         for (iy = (int)(y - 5U + 1); iy <= (int)(y + 5U); iy++) {
             if (ix >= 0 && ix < m_inputWidth && iy >= 0 && iy < m_inputHeight) {
                 double weight = lanczosKernel(x - ix) * lanczosKernel(y - iy);
-                r += weight * m_decodedData[iy * m_inputWidth + ix];
-                g += weight * m_decodedData[iy * m_inputWidth + ix + 1U];
-                b += weight * m_decodedData[iy * m_inputWidth + ix + 2U];
+                r += weight * m_decodedData[pixelLocationToIndex(ix, iy)];
+                g += weight * m_decodedData[pixelLocationToIndex(ix, iy) + 1U];
+                b += weight * m_decodedData[pixelLocationToIndex(ix, iy) + 2U];
+                weights += weight;
             }
         }
     }
 
-    return std::make_tuple((uint8_t)round(r), (uint8_t)round(g), (uint8_t)round(b));
+    return std::make_tuple((uint8_t)(r / weights), (uint8_t)(g / weights), (uint8_t)(b / weights));
 }
 
 void Downscaler::lanczos()
 {
-    std::cout << "Using lanczos\n";
-    double scaleX { double(m_outputWidth)/double(m_inputWidth) };
-    double scaleY { double(m_outputHeight)/double(m_inputHeight) };
-
-    double invScaleX { 1.0 / scaleX };
-    double invScaleY { 1.0 / scaleY };
+    double scaleX { double(m_inputWidth)/double(m_outputWidth) };
+    double scaleY { double(m_inputHeight)/double(m_outputHeight) };
+    double invScale { scaleX };
 
     for (std::uint32_t y { 0U }; y < m_outputHeight; ++y) {
         for (std::uint32_t x { 0U }; x < m_outputWidth; ++x) {
-            double originalX { x * invScaleX };
-            double originalY { y * invScaleY };
+            double originalX { x * invScale };
+            double originalY { y * invScale };
             auto ret { lanczosResample(originalX, originalY) };
             m_downscaledData.emplace_back(std::get<0>(ret));
             m_downscaledData.emplace_back(std::get<1>(ret));
@@ -119,30 +119,20 @@ void Downscaler::nearestNeighbour()
         throw std::logic_error("Unsupported downscaling factor");
     }
 
-    std::uint64_t idx { 0U };
-#if 0
-    for (; idx < (m_outputWidth * m_outputHeight * 3U); idx += 3U)
-    {
-        m_downscaledData.emplace_back(m_decodedData[idx * downscalingFactor * 2]);
-        m_downscaledData.emplace_back(m_decodedData[(idx * downscalingFactor * 2) + 1U]);
-        m_downscaledData.emplace_back(m_decodedData[(idx * downscalingFactor * 2) + 2U]);
-        //std::cout << "idx: " << idx << "\n";
-        //std::cout << "idx*dsf: " << idx * downscalingFactor << "\n";
-    }
-#endif
-    for (std::uint32_t i { 0U }; i < m_outputHeight; ++i) {
-        for (std::uint32_t j { 0U }; j < m_outputWidth; ++j) {
-            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor)]);
-            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor) + 1U]);
-            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(i * downscalingFactor, j * downscalingFactor) + 2U]);
+    for (std::uint32_t y { 0U }; y < m_outputHeight; ++y) {
+        for (std::uint32_t x { 0U }; x < m_outputWidth; ++x) {
+            std::uint32_t originalX { x * downscalingFactor };
+            std::uint32_t originalY { y * downscalingFactor };
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(originalX, originalY)]);
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(originalX, originalY) + 1U]);
+            m_downscaledData.emplace_back(m_decodedData[pixelLocationToIndex(originalX, originalY) + 2U]);
         }
     }
 
-    std::cout << "DSF: " << downscalingFactor << "\n";
     std::cout << "P3\n";
     std::cout << m_outputWidth << " " << m_outputHeight << "\n";
     std::cout << "255\n";
-    idx = 0U;
+    std::uint32_t idx = 0U;
     for (const std::uint8_t value : m_downscaledData)
     {
         ++idx;
@@ -204,6 +194,16 @@ const char *fragmentShaderSource =
     "}\0";
 
 const char *nearestFragmentShaderSource =
+    "#version 450 core\n"
+    "out vec4 fragmentColor;\n"
+    "in vec2 texCoords;\n"
+    "uniform sampler2D texture;\n"
+    "void main()\n"
+    "{\n"
+    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * 4, gl_FragCoord.y * 4), 0);\n"
+    "}\0";
+
+const char *lanczosFragmentShaderSource =
     "#version 450 core\n"
     "out vec4 fragmentColor;\n"
     "in vec2 texCoords;\n"

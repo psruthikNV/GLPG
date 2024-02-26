@@ -45,16 +45,16 @@ std::uint32_t Downscaler::pixelLocationToIndex(std::uint32_t xLocation, std::uin
 }
 
 
-static double lanczosKernel(double x)
+static double lanczosKernel(double x, std::uint32_t lanczosKernelSize)
 {
     if (x == 0.0) {
         return 1.0;
     }
-    if (std::fabs(x) >= 5U) {
+    if (std::fabs(x) >= lanczosKernelSize) {
         return 0.0;
     }
 
-    double ret { std::sin(M_PI * x) * std::sin(M_PI * x / 5U) / (M_PI * M_PI * x * x / 5U) };
+    double ret { std::sin(M_PI * x) * std::sin(M_PI * x / lanczosKernelSize) / (M_PI * M_PI * x * x / lanczosKernelSize) };
     return ret;
 }
 
@@ -64,10 +64,10 @@ std::tuple<uint8_t, uint8_t, uint8_t> Downscaler::lanczosResample(double x, doub
     double r = 0.0, g = 0.0, b = 0.0;
     double weights { 0.0 };
 
-    for (ix = (int)(x - 5U + 1); ix <= (int)(x + 5U); ix++) {
-        for (iy = (int)(y - 5U + 1); iy <= (int)(y + 5U); iy++) {
+    for (ix = (int)(x - m_lanczosKernelSize + 1); ix <= (int)(x + m_lanczosKernelSize); ix++) {
+        for (iy = (int)(y - m_lanczosKernelSize + 1); iy <= (int)(y + m_lanczosKernelSize); iy++) {
             if (ix >= 0 && ix < m_inputWidth && iy >= 0 && iy < m_inputHeight) {
-                double weight = lanczosKernel(x - ix) * lanczosKernel(y - iy);
+                double weight = lanczosKernel(x - ix, m_lanczosKernelSize) * lanczosKernel(y - iy, m_lanczosKernelSize);
                 r += weight * m_decodedData[pixelLocationToIndex(ix, iy)];
                 g += weight * m_decodedData[pixelLocationToIndex(ix, iy) + 1U];
                 b += weight * m_decodedData[pixelLocationToIndex(ix, iy) + 2U];
@@ -178,10 +178,22 @@ const char *vertexShaderSource =
     "layout (location = 0) in vec2 vertexPosition;\n"
     "layout (location = 1) in vec2 textureCoords;\n"
     "out vec2 texCoords;\n"
+    "uniform uint inputWidth;\n"
+    "uniform uint inputHeight;\n"
+    "uniform uint scaleRatio;\n"
+    "uniform int lanczosKernelSize;\n"
+    "out flat uint m_inputWidth;\n"
+    "out flat uint m_inputHeight;\n"
+    "out flat uint m_scaleRatio;\n"
+    "out flat int m_lanczosKernelSize;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(vertexPosition, 0.0, 1.0);\n"
     "   texCoords = textureCoords;\n"
+    "   m_inputWidth = inputWidth;\n"
+    "   m_inputHeight = inputHeight;\n"
+    "   m_scaleRatio = scaleRatio;\n"
+    "   m_lanczosKernelSize = lanczosKernelSize;\n"
     "}\0";
 const char *fragmentShaderSource =
     "#version 450 core\n"
@@ -200,7 +212,7 @@ const char *nearestFragmentShaderSource =
     "uniform sampler2D texture;\n"
     "void main()\n"
     "{\n"
-    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * 4, gl_FragCoord.y * 4), 0);\n"
+    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * 2, gl_FragCoord.y * 2), 0);\n"
     "}\0";
 
 const char *lanczosFragmentShaderSource =
@@ -208,9 +220,47 @@ const char *lanczosFragmentShaderSource =
     "out vec4 fragmentColor;\n"
     "in vec2 texCoords;\n"
     "uniform sampler2D texture;\n"
+    "in flat uint m_inputWidth;\n"
+    "in flat uint m_inputHeight;\n"
+    "in flat uint m_scaleRatio;\n"
+    "in flat int m_lanczosKernelSize;\n"
+    "float lanczosKernel(float x, uint lanczosKernelSize)\n"
+    "{\n"
+    "if (x == 0.0) {\n"
+    "   return 1.0;\n"
+    "\n}"
+    "if (abs(x) >= m_lanczosKernelSize) {\n"
+    "   return 0.0;\n"
+    "}\n"
+    "const float M_PI = 3.1415926535897932384626433832795;\n"
+    "float ret = sin(M_PI * x) * sin(M_PI * x / m_lanczosKernelSize) / (M_PI * M_PI * x * x / m_lanczosKernelSize) ;\n"
+    "return ret;\n"
+    "}\n"
+    "vec3 lanczosResample(int x, int y)\n"
+    "{\n"
+    "\n"
+    "int ix, iy;\n"
+    "float r = 0.0, g = 0.0, b = 0.0;\n"
+    "vec3 rgb = vec3(0.0, 0.0, 0.0);\n"
+    "float weights = 0.0;\n"
+    "for (ix = x - m_lanczosKernelSize + 1; ix <= x + m_lanczosKernelSize; ++ix) {\n"
+        "for (iy = y - m_lanczosKernelSize + 1; iy <= y + m_lanczosKernelSize; ++iy) {\n"
+            "if (ix >= 0 && ix < m_inputWidth && iy >= 0 && iy < m_inputHeight) {\n"
+                "float weight = lanczosKernel(x - ix, m_lanczosKernelSize) * lanczosKernel(y - iy, m_lanczosKernelSize);\n"
+                "rgb.x += weight * texelFetch(texture, ivec2(ix, iy), 0).x;\n"
+                "rgb.y += weight * texelFetch(texture, ivec2(ix, iy), 0).y;\n"
+                "rgb.z += weight * texelFetch(texture, ivec2(ix, iy), 0).z;\n"
+                "weights += weight;\n"
+            "}\n"
+        "}\n"
+    "}\n"
+    "return vec3(rgb.x/weights, rgb.y/weights, rgb.z/weights);\n"
+    "//return vec3(weights, weights, weights);\n"
+    "}\n"
     "void main()\n"
     "{\n"
-    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * 4, gl_FragCoord.y * 4), 0);\n"
+    "   //fragmentColor = vec4(lanczosResample(int(gl_FragCoord.x * m_scaleRatio), int(gl_FragCoord.y * m_scaleRatio)), 0);\n"
+    "   fragmentColor = texelFetch(texture, ivec2(gl_FragCoord.x * m_scaleRatio, gl_FragCoord.y * m_scaleRatio), 0);\n"
     "}\0";
 
 int main(int argc, char **argv)
@@ -225,7 +275,7 @@ int main(int argc, char **argv)
         auto decodedData { decoder.decode() };
         decoder.deinit();
         downscaler::Downscaler ds(decoder.getWidth(), decoder.getHeight(), args.outputImageWidth, args.outputImageHeight,
-                                  decodedData, args.filter);
+                                  decodedData, args.filter, args.lanczosKernelSize);
         auto downscaledData { ds.downscale() };
         // Exception aware code ends. Error checking required.
         GLuint VBO = 0;
@@ -233,10 +283,15 @@ int main(int argc, char **argv)
         GLuint vtxShaderObj = 0;
         GLuint fragShaderObj = 0;
         GLuint programObj = 0;
+        GLuint lanczosProgObj = 0;
         GLuint textureID = 0;
         GLPG::GLPGContext context;
         GLPG::GLPGEventLoop eventLoop;
         GLPG::GLPGEvent event;
+        GLuint inputWidthLocation;
+        GLuint inputHeightLocation;
+        GLuint scaleRatioLocation;
+        GLuint lanczosKernelSizeLocation;
 
         GLPG::GLPGWindow *window = GLPG::GLPGWindow::GetInstance();
         if (!window) {
@@ -297,6 +352,27 @@ int main(int argc, char **argv)
             return -1;
         }
 
+        lanczosProgObj = glCreateProgram();
+
+        GLuint lanczosFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+        if (!GLPG::compileShader(lanczosFragShader, lanczosFragmentShaderSource)) {
+            std::cout << "Lanczos Fragment Shader Compilation Failed" << std::endl;
+            return -1;
+        }
+
+        glAttachShader(lanczosProgObj, vtxShaderObj);
+        glAttachShader(lanczosProgObj, lanczosFragShader);
+
+        if (!GLPG::linkShaders(lanczosProgObj)) {
+            std::cout << "Failed to link nearest Shaders" << std::endl;
+            return -1;
+        }
+
+        glUseProgram(lanczosProgObj);
+        inputWidthLocation = glGetUniformLocation(programObj, "inputWidth");
+        inputHeightLocation = glGetUniformLocation(programObj, "inputHeight");
+        scaleRatioLocation = glGetUniformLocation(programObj, "scaleRatio");
+        lanczosKernelSizeLocation = glGetUniformLocation(programObj, "lanczosKernelSize");
         glUseProgram(programObj);
         //glUseProgram(nearestProgObj);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -325,20 +401,35 @@ int main(int argc, char **argv)
         while ((event = eventLoop.GetEvent()) != GLPG::GLPGEvent::Key_Escape) {
             switch(event) {
                 case GLPG::GLPGEvent::Key_1:
+                    glUseProgram(programObj);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                     break;
                 case GLPG::GLPGEvent::Key_2:
+                    glUseProgram(programObj);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     break;
                 case GLPG::GLPGEvent::Key_3:
+                    glUseProgram(programObj);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     break;
                 case GLPG::GLPGEvent::Key_4:
+                    glUseProgram(programObj);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    break;
+                case GLPG::GLPGEvent::Key_5:
+                    glUseProgram(nearestProgObj);
+                    break;
+                case GLPG::GLPGEvent::Key_6:
+                    glUseProgram(lanczosProgObj);
+                    glUniform1ui(inputWidthLocation, decoder.getWidth());
+                    glUniform1ui(inputHeightLocation, decoder.getHeight());
+                    std::cout << "scaleRatioLocation: 
+                    glUniform1ui(scaleRatioLocation, decoder.getWidth() / args.outputImageWidth);
+                    glUniform1i(lanczosKernelSizeLocation, args.lanczosKernelSize);
                     break;
             }
             glClear(GL_COLOR_BUFFER_BIT);

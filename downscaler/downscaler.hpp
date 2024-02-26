@@ -38,6 +38,7 @@ class Downscaler
         std::vector<std::uint8_t> &m_decodedData;
         std::vector<std::uint8_t> m_downscaledData;
         utils::Filter m_filter;
+        std::uint32_t m_lanczosKernelSize;
 
         std::uint32_t pixelLocationToIndex(std::uint32_t xLocation, std::uint32_t yLocation);
         void nearestNeighbour();
@@ -47,13 +48,15 @@ class Downscaler
         Downscaler(std::uint32_t inputWidth, std::uint32_t inputHeight,
                    std::uint32_t outputWidth, std::uint32_t outputHeight,
                    std::vector<std::uint8_t> &decodedData,
-                   utils::Filter filter) :
+                   utils::Filter filter,
+                   std::uint32_t lanczosKernelSize) :
             m_inputWidth(inputWidth),
             m_inputHeight(inputHeight),
             m_outputWidth(outputWidth),
             m_outputHeight(outputHeight),
             m_decodedData(decodedData),
-            m_filter(filter) { }
+            m_filter(filter),
+            m_lanczosKernelSize(lanczosKernelSize) { }
 
         std::vector<std::uint8_t> &downscale();
 };

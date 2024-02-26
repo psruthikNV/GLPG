@@ -71,6 +71,7 @@ struct InputArguments
     std::uint32_t outputImageHeight; ///< Height of the output image to be written
     Filter filter; ///< The downscaling filter to be used
     bool useGpu; ///< Use GPU for downscaling and displaying of downscaled image
+    std::uint32_t lanczosKernelSize { 5U };
 };
 
 ///

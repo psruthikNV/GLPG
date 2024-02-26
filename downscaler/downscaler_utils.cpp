@@ -104,6 +104,8 @@ utils::InputArguments InputParser::parseArgs(const std::int32_t argc, char **arg
             ret.filter = toFilter(std::string(argv[++idx]));
         } else if (!strcmp(argv[idx], "-useGpu")) {
             ret.useGpu = true;
+        } else if (!strcmp(argv[idx], "-lanczosKernelSize") && (idx != argc - 1U)){
+            ret.lanczosKernelSize = strtol(argv[++idx], nullptr, 10U);
         } else {
             throw std::invalid_argument("Unrecognized argument specified! Run with '-help' to see the list of accepted arguments.");
         }

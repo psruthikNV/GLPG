@@ -28,6 +28,8 @@ PFNGLVERTEXARRAYVERTEXBUFFERPROC glVertexArrayVertexBuffer;
 PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 PFNGLUNIFORM4FPROC glUniform4f;
 PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
+PFNGLUNIFORM1UIPROC glUniform1ui;
+PFNGLUNIFORM1IPROC glUniform1i;
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 PFNGLPATHCOMMANDSNVPROC glPathCommandsNV;
 PFNGLPATHSTRINGNVPROC glPathStringNV;
@@ -93,6 +95,8 @@ namespace GLPG {
         glVertexArrayAttribBinding = (PFNGLVERTEXARRAYATTRIBBINDINGPROC)LoadGLFunction("glVertexArrayAttribBinding");
         glVertexArrayVertexBuffer = (PFNGLVERTEXARRAYVERTEXBUFFERPROC)LoadGLFunction("glVertexArrayVertexBuffer");
         glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)LoadGLFunction("glGetUniformLocation");
+        glUniform1ui = (PFNGLUNIFORM1UIPROC)LoadGLFunction("glUniform1ui");
+        glUniform1i = (PFNGLUNIFORM1IPROC)LoadGLFunction("glUniform1i");
         glUniform4f = (PFNGLUNIFORM4FPROC)LoadGLFunction("glUniform4f");
         glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)LoadGLFunction("glUniformMatrix4fv");
         glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)LoadGLFunction("glGenerateMipmap");

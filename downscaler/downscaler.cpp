@@ -427,7 +427,6 @@ int main(int argc, char **argv)
                     glUseProgram(lanczosProgObj);
                     glUniform1ui(inputWidthLocation, decoder.getWidth());
                     glUniform1ui(inputHeightLocation, decoder.getHeight());
-                    std::cout << "scaleRatioLocation: 
                     glUniform1ui(scaleRatioLocation, decoder.getWidth() / args.outputImageWidth);
                     glUniform1i(lanczosKernelSizeLocation, args.lanczosKernelSize);
                     break;

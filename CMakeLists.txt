@@ -5,10 +5,10 @@ cmake_minimum_required(VERSION 3.10)
 
 project(GLPG)
 
-#set(VK_SDK_PATH "" CACHE STRING "Path to Vulkan SDK to use")
-#if (VK_SDK_PATH STREQUAL "")
-#    message(SEND_ERROR "VK_SDK_PATH not set!")
-#endif()
+set(VK_SDK_PATH "" CACHE STRING "Path to Vulkan SDK to use")
+if (VK_SDK_PATH STREQUAL "")
+    message(WARNING "VK_SDK_PATH not set! Vulkan examples will not be built.")
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG     "${CMAKE_CXX_FLAGS_DEBUG} -DGLPG_IS_DEBUG")
 SET(CMAKE_CXX_FLAGS           "${CMAKE_CXX_FLAGS} /D \"SAFESEH:NO\"")
@@ -46,9 +46,13 @@ endif()
 
 add_subdirectory(src)
 
-# Build OpenGL examples only on 64bit builds
+# Build OpenGL and Vulkan examples only on 64bit builds
 if (NOT "${CMAKE_GENERATOR_PLATFORM}" STREQUAL "Win32")
-    add_subdirectory(examples)
+    add_subdirectory(gl)
+    # Build Vulkan examples only if Vulkan pre-requisites are specified
+    if(DEFINED VK_SDK_PATH AND VK_SDK_PATH)
+        add_subdirectory(vulkan)
+    endif()
 endif()
 
 # Build D3D2, D3D7 and D3D8 examples only on 32bit builds

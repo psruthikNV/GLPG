@@ -143,8 +143,8 @@ int main() {
     char *psCompiledBlob;
     D3D12_SHADER_BYTECODE vertexShaderBytecode = {};
     D3D12_SHADER_BYTECODE pixelShaderBytecode = {};
-    const char *compiledVSPath = "C:/repos/GLPG/build/d3d12/02_triangle_vs";
-    const char *compiledPSPath = "C:/repos/GLPG/build/d3d12/02_triangle_ps";
+    const char *compiledVSPath = "C:/git/GLPG/build/d3d12/shaders/02_triangle_vs.cso";
+    const char *compiledPSPath = "C:/git/GLPG/build/d3d12/shaders/02_triangle_ps.cso";
     std::fstream fs;
     std::streampos vsCompiledBlobSize;
     std::streampos psCompiledBlobSize;
